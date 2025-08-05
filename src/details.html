@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-translate="meal_details_title">Meal Details</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">
+                <img src="images/evolve-logo.svg" alt="EVOLVE Logo">
+            </div>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="index.html" data-translate="home">Home</a></li>
+                    <li><a href="index.html#about" data-translate="about">About</a></li>
+                    <li><a href="index.html#services" data-translate="services">Services</a></li>
+                    <li><a href="menu.html" data-translate="menu_title">Menu</a></li>
+                     <li><a href="index.html#contact" data-translate="contact">Contact</a></li>
+                    <li class="language-switcher">
+                        <button id="lang-toggle" class="lang-btn">
+                            <span class="lang-text">English</span>
+                            <i class="fas fa-globe"></i>
+                        </button>
+                        <div class="language-dropdown">
+                            <a href="#" data-lang="en" class="active">English</a>
+                            <a href="#" data-lang="ar">العربية</a>
+                        </div>
+                    </li>
+                </ul>
+                <div class="hamburger">
+                    <i class="fas fa-bars"></i>
+                </div>
+            </nav>
+        </div>
+    </header>
+    <main>
+        <div class="container">
+            <div class="meal-details-card">
+                <div class="meal-details-img-wrap">
+                    <img id="meal-img" src="images/meal-1.jpg" alt="Meal Image" class="meal-img">
+                </div>
+                <div class="meal-details-content">
+                    <h2 id="meal-name"></h2>
+                    <p id="meal-description">Lean grilled chicken breast served with steamed vegetables and brown rice.</p>
+                    <p id="meal-usage"><strong data-translate="usage">Usage:</strong> High-protein meal ideal for muscle building and recovery.</p>
+                    <p id="meal-price"><strong data-translate="price">Price:</strong> 45 <span data-translate="currency">SAR</span></p>
+                    <div class="meal-details-extra">
+                        <h3 data-translate="how_to_use">How to Use</h3>
+                        <p id="meal-how-to-use">Eat post-workout for best results. Pair with complex carbs for energy.</p>
+                    </div>
+                </div>
+            </div>
+            <a href="menu.html" class="btn" data-translate="back_to_menu">Back to Menu</a>
+        </div>
+    </main>
+    <br/>
+    <br/>
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo" data-aos="fade-up">
+                    <img src="images/evolve-logo.svg" alt="EVOLVE Logo">
+                    <p data-translate="tagline">Redefining Athletic Excellence in Saudi Arabia</p>
+                    <div class="social-links">
+                        <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://www.instagram.com/evolve.saudi" class="social-link"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="footer-links" data-aos="fade-up" data-aos-delay="100">
+                    <h3 data-translate="quick_links">Quick Links</h3>
+                    <ul>
+                        <li><a href="index.html" data-translate="home">Home</a></li>
+                        <li><a href="menu.html" data-translate="menu_title">Menu</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; <script>document.write(new Date().getFullYear())</script> EVOLVE. <span data-translate="rights_reserved">All Rights Reserved.</span></p>
+            </div>
+        </div>
+    </footer>
+    <script src="translations.js"></script>
+    <script>
+            document.addEventListener('DOMContentLoaded', function() {
+        const hamburger = document.querySelector('.hamburger');
+        const navLinks = document.querySelector('.nav-links');
+        const header = document.querySelector('header');
+        const backToTopButton = document.getElementById('back-to-top');
+        
+        // Function to handle mobile menu
+        function handleMobileMenu() {
+            // Toggle mobile menu
+            if (hamburger && navLinks) {
+                hamburger.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    navLinks.classList.toggle('active');
+                    document.body.style.overflow = navLinks.classList.contains('active') ? 'hidden' : '';
+                    
+                    // Toggle hamburger icon
+                    const icon = this.querySelector('i');
+                    if (navLinks.classList.contains('active')) {
+                        icon.classList.remove('fa-bars');
+                        icon.classList.add('fa-times');
+                    } else {
+                        icon.classList.remove('fa-times');
+                        icon.classList.add('fa-bars');
+                    }
+                });
+                
+                // Close menu when clicking on a link
+                const navItems = document.querySelectorAll('.nav-links a');
+                navItems.forEach(item => {
+                    item.addEventListener('click', function() {
+                        navLinks.classList.remove('active');
+                        document.body.style.overflow = '';
+                        const icon = hamburger.querySelector('i');
+                        icon.classList.remove('fa-times');
+                        icon.classList.add('fa-bars');
+                    });
+                });
+                
+                // Close menu when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!navLinks.contains(e.target) && !hamburger.contains(e.target) && navLinks.classList.contains('active')) {
+                        navLinks.classList.remove('active');
+                        document.body.style.overflow = '';
+                        const icon = hamburger.querySelector('i');
+                        icon.classList.remove('fa-times');
+                        icon.classList.add('fa-bars');
+                    }
+                });
+            }
+        }
+        
+        // Back to top functionality
+        function setupBackToTop() {
+            if (backToTopButton) {
+                window.addEventListener('scroll', function() {
+                    if (window.scrollY > 300) {
+                        backToTopButton.classList.add('show');
+                    } else {
+                        backToTopButton.classList.remove('show');
+                    }
+                });
+                
+                backToTopButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                });
+            }
+        }
+        
+        // Initialize functions
+        handleMobileMenu();
+        setupBackToTop();
+    });
+    
+    // Get meal id from URL
+function getMealIdFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('id');
+}
+
+// Fetch meal data from JSON file
+function fetchMealData(lang, mealId) {
+    const file = lang === 'ar' ? 'meals-ar.json' : 'meals-en.json';
+    fetch(file)
+        .then(res => {
+            if (!res.ok) throw new Error('Could not load meals data');
+            return res.json();
+        })
+        .then(meals => {
+            const meal = meals.find(m => String(m.id) === String(mealId));
+            if (meal) {
+                renderMeal(lang, meal);
+            } else {
+                showMealNotFound();
+            }
+        })
+        .catch(err => {
+            showMealNotFound();
+        });
+}
+
+function renderMeal(lang, meal) {
+    document.getElementById('meal-img').src = meal.image;
+    document.getElementById('meal-img').alt = meal.name;
+    document.getElementById('meal-name').textContent = meal.name;
+    document.getElementById('meal-description').textContent = meal.description;
+    // ترجمة الاستخدام والسعر بشكل صحيح
+    document.getElementById('meal-usage').innerHTML = `<strong data-translate="usage">${translations[lang]['usage']}</strong> ${meal.usage}`;
+    document.getElementById('meal-price').innerHTML = `<strong data-translate="price">${translations[lang]['price']}</strong> ${meal.price} <span data-translate="currency">${translations[lang]['currency']}</span>`;
+    // عرض how_to_use إذا متوفر في JSON، وإلا fallback إلى usage
+    document.getElementById('meal-how-to-use').textContent = meal.how_to_use ? meal.how_to_use : meal.usage;
+}
+
+function showMealNotFound() {
+    document.querySelector('.meal-details-card').innerHTML = '<div class="no-meals" data-translate="meal_not_found">Meal not found.</div>';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    let currentLang = localStorage.getItem('language') || 'en';
+    const mealId = getMealIdFromUrl();
+    fetchMealData(currentLang, mealId);
+    applyLanguage(currentLang);
+    // Language switcher logic
+    document.querySelectorAll('.language-dropdown a').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const lang = this.getAttribute('data-lang');
+            currentLang = lang;
+            localStorage.setItem('language', lang);
+            fetchMealData(lang, mealId);
+            applyLanguage(lang);
+            document.querySelectorAll('.language-dropdown a').forEach(a => a.classList.remove('active'));
+            this.classList.add('active');
+            document.querySelector('.lang-text').textContent = lang === 'en' ? 'English' : 'العربية';
+        });
+    });
+});
+    </script>
+    <style>
+    .meal-details-card {
+        background: #fff;
+        border-radius: 18px;
+        box-shadow: 0 2px 16px rgba(0,0,0,0.10);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 30px;
+        margin: 64px auto 32px auto;
+        max-width: 900px;
+        overflow: hidden;
+        border: 1px solid #eee;
+    }
+    .meal-details-img-wrap {
+        flex: 1 1 320px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f5f5f5;
+        min-width: 320px;
+        min-height: 320px;
+        max-width: 400px;
+    }
+    .meal-details-img-wrap img {
+        max-width: 95%;
+        max-height: 350px;
+        border-radius: 12px;
+        object-fit: cover;
+        background: #f5f5f5;
+    }
+    .meal-details-content {
+        flex: 2 1 400px;
+        padding: 36px 28px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    .meal-details-content h2 {
+        font-size: 2.2rem;
+        margin-bottom: 18px;
+        color: #e67e22;
+        font-weight: 700;
+    }
+    .meal-details-content p {
+        font-size: 1.12em;
+        margin-bottom: 13px;
+        color: #333;
+    }
+    .meal-details-extra {
+        margin-top: 20px;
+        background: #faf6f0;
+        border-radius: 10px;
+        padding: 18px 16px;
+    }
+    .meal-details-extra h3 {
+        margin-bottom: 6px;
+        color: #e67e22;
+        font-size: 1.1em;
+    }
+    .btn {
+        display: inline-block;
+        margin-top: 32px;
+        background: #e67e22;
+        color: #fff;
+        border-radius: 8px;
+        padding: 12px 32px;
+        font-size: 1.1em;
+        font-weight: 600;
+        text-decoration: none;
+        transition: background 0.15s;
+    }
+    .btn:hover {
+        background: #cf711f;
+    }
+    @media (max-width: 800px) {
+        .meal-details-card {
+            flex-direction: column;
+            align-items: center;
+        }
+        .meal-details-img-wrap, .meal-details-content {
+            min-width: 100%;
+            max-width: 100%;
+            padding: 24px 12px;
+        }
+    }
+    </style>
+        <!-- Back to Top Button -->
+        <a href="#" id="back-to-top" class="back-to-top">
+            <i class="fas fa-chevron-up"></i>
+        </a>
+        
+        <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+        <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+        <script>
+            // تعريف متغير header
+            const header = document.querySelector('header');
+            
+            // Initialize Swiper
+            const heroCarousel = new Swiper('.hero-carousel', {
+                loop: true,
+                effect: 'fade',
+                speed: 800,
+                fadeEffect: {
+                    crossFade: true
+                },
+                autoplay: {
+                    delay: 5000,
+                    disableOnInteraction: false,
+                },
+                pagination: {
+                    el: '.swiper-pagination',
+                    clickable: true,
+                },
+                navigation: {
+                    nextEl: '.swiper-button-next',
+                    prevEl: '.swiper-button-prev',
+                },
+                on: {
+                    slideChangeTransitionStart: function() {
+                        // إخفاء المحتوى السابق
+                        document.querySelectorAll('.swiper-slide:not(.swiper-slide-active) .slide-content').forEach(content => {
+                            content.style.opacity = '0';
+                            content.style.transform = 'translate(-50%, -40%)';
+                        });
+                    },
+                    slideChangeTransitionEnd: function() {
+                        // إظهار المحتوى الحالي
+                        const activeContent = document.querySelector('.swiper-slide-active .slide-content');
+                        if (activeContent) {
+                            activeContent.style.opacity = '1';
+                            activeContent.style.transform = 'translate(-50%, -50%)';
+                        }
+                    }
+                }
+            });
+            
+            // Initialize AOS
+            AOS.init({
+                duration: 800,
+                easing: 'ease',
+                once: true,
+                offset: 100,
+            });
+            
+            // Mobile Navigation Toggle
+            // كود تفعيل زر البرجر للقائمة
+            document.addEventListener('DOMContentLoaded', function() {
+            const hamburger = document.querySelector('.hamburger');
+            const navLinks = document.querySelector('.nav-links');
+            
+            // إضافة زر إغلاق للقائمة فقط في الشاشات الصغيرة
+            function handleResize() {
+            // إزالة زر الإغلاق إذا كان موجودًا
+            const existingCloseButton = document.querySelector('.close-menu');
+            if (existingCloseButton) {
+            existingCloseButton.remove();
+            }
+            
+            // إضافة زر الإغلاق فقط في الشاشات الصغيرة
+            if (window.innerWidth <= 768) {
+            const closeButton = document.createElement('button');
+            closeButton.className = 'close-menu';
+            closeButton.innerHTML = '<i class="fas fa-times"></i>';
+            navLinks.prepend(closeButton);
+            
+            // تفعيل إغلاق القائمة
+            closeButton.addEventListener('click', function() {
+            navLinks.classList.remove('active');
+            });
+            }
+            }
+            
+            // تنفيذ الدالة عند تحميل الصفحة وعند تغيير حجم النافذة
+            handleResize();
+            window.addEventListener('resize', handleResize);
+            
+            // تفعيل فتح القائمة
+            hamburger.addEventListener('click', function() {
+            navLinks.classList.add('active');
+            });
+            
+            // إغلاق القائمة عند النقر على أي رابط
+            const navItems = document.querySelectorAll('.nav-links a');
+            navItems.forEach(item => {
+            item.addEventListener('click', function() {
+            // إزالة الكلاس active من جميع الروابط
+            navItems.forEach(link => link.classList.remove('active'));
+            // إضافة الكلاس active للرابط الذي تم النقر عليه
+            this.classList.add('active');
+            navLinks.classList.remove('active');
+            
+            });
+            });
+            
+            // إغلاق القائمة عند النقر خارجها
+            document.addEventListener('click', function(e) {
+            if (!navLinks.contains(e.target) && !hamburger.contains(e.target) && navLinks.classList.contains('active')) {
+            navLinks.classList.remove('active');
+            }
+            });
+            });
+            
+    
+        
+        // Back to Top Button
+        const backToTopButton = document.getElementById('back-to-top');
+        
+        // تفعيل زر العودة إلى الأعلى عند التمرير
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 100) {
+                header.style.padding = '20px 0';
+                backToTopButton.classList.add('active');
+                        updateActiveNavOnScroll();
+    
+            } else {
+                header.style.padding = '20px 0';
+                backToTopButton.classList.remove('active');
+            }
+            
+            // تحديث الكلاس active عند التمرير
+        });
+        
+        // Back to Top Button Click Event
+        backToTopButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+        
+            
+            // تحديث الكلاس active عند التمرير
+    function updateActiveNavOnScroll() {
+        const sections = document.querySelectorAll('section[id]');
+        const scrollPosition = window.scrollY + 200; // إضافة هامش للتأكد من تفعيل القسم في الوقت المناسب
+    
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            const sectionId = section.getAttribute('id');
+    
+            if (scrollPosition >= sectionTop) {
+                // إزالة الكلاس active من جميع الروابط
+                navItems.forEach(item => item.classList.remove('active'));
+    
+                // إضافة الكلاس active للرابط المقابل للقسم الحالي
+                const correspondingLink = document.querySelector(`.nav-links a[href="#${sectionId}"]`);
+                if (correspondingLink) {
+                    correspondingLink.classList.add('active');
+                }
+            }
+        });
+    }
+    
+            // تفعيل الرابط الأول عند تحميل الصفحة
+            window.addEventListener('load', function() {
+                // تفعيل الرابط الأول افتراضيًا
+                const firstNavItem = document.querySelector('.nav-links a');
+                if (firstNavItem) {
+                    firstNavItem.classList.add('active');
+                }
+                
+                // تحديث الكلاس active عند التمرير
+                updateActiveNavOnScroll();
+            });
+            
+            // Smooth scrolling for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const targetId = this.getAttribute('href');
+                    if (targetId === '#') return;
+                    
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        const headerHeight = document.querySelector('header').offsetHeight;
+                        const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - headerHeight;
+                        
+                        window.scrollTo({
+                            top: targetPosition,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+            // تعديل كود إرسال النموذج
+            document.querySelector("#contact-form").addEventListener("submit", async function (e) {
+                e.preventDefault(); // يمنع التحويل للصفحة
+            
+                const form = this;
+                const formData = new FormData(form);
+                const submitBtn = document.getElementById("submit-btn");
+                const notification = document.getElementById("form-notification");
+                
+                // الحصول على اللغة الحالية
+                const currentLang = localStorage.getItem('language') || 'en';
+                
+                // إظهار حالة التحميل
+                submitBtn.classList.add("loading");
+                submitBtn.disabled = true;
+                notification.className = "form-notification sending";
+                notification.textContent = translations[currentLang]["sending"] || "Sending...";
+                notification.style.display = "block";
+            
+                try {
+                    // تحويل FormData إلى كائن عادي
+                    const formObject = {};
+                    formData.forEach((value, key) => {
+                        formObject[key] = value;
+                    });
+                    
+                    // إضافة حقول إضافية مطلوبة لـ FormSubmit
+                    formObject._subject = "New Contact Form Submission";
+                    
+                    // إرسال البيانات باستخدام fetch
+                    const response = await fetch("https://formsubmit.co/ajax/F.alamoudi@evolvetheapp.com", {
+                        method: "POST",
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(formObject)
+                    });
+            
+                    const result = await response.json();
+                    
+                    if (result.success === "true" || result.success === true) {
+                        // إظهار رسالة النجاح
+                        notification.className = "form-notification success";
+                        notification.textContent = translations[currentLang]["success_message"] || "Message sent successfully!";
+                        form.reset();
+                    } else {
+                        // إظهار رسالة الخطأ
+                        notification.className = "form-notification error";
+                        notification.textContent = translations[currentLang]["error_message"] || "Failed to send message. Please try again.";
+                        console.error("Form submission error:", result);
+                    }
+                } catch (error) {
+                    // إظهار رسالة الخطأ في حالة حدوث استثناء
+                    notification.className = "form-notification error";
+                    notification.textContent = translations[currentLang]["network_error"] || "Network error. Please try again.";
+                    console.error("Form submission error:", error);
+                } finally {
+                    // إزالة حالة التحميل
+                    submitBtn.classList.remove("loading");
+                    submitBtn.disabled = false;
+                    
+                    // إخفاء الإشعار بعد فترة (إلا في حالة الخطأ)
+                    if (!notification.classList.contains("error")) {
+                        setTimeout(() => {
+                            notification.style.opacity = "0";
+                            setTimeout(() => {
+                                notification.textContent = "";
+                                notification.className = "form-notification";
+                                notification.style.display = "none";
+                                notification.style.opacity = "1";
+                            }, 500);
+                        }, 5000);
+                    }
+                }
+            });
+        </script>
+        <!-- إضافة سكريبت الترجمة -->
+        <script src="translations.js"></script>
+        <script>
+            // كود تبديل اللغة
+            document.addEventListener('DOMContentLoaded', function() {
+                // تحديد اللغة الافتراضية
+                let currentLang = localStorage.getItem('language') || 'en';
+                
+                // تطبيق اللغة المحفوظة
+                applyLanguage(currentLang);
+                
+                // تحديث زر اللغة
+                updateLanguageButton(currentLang);
+                
+                // إضافة مستمعي الأحداث لروابط تبديل اللغة
+                document.querySelectorAll('.language-dropdown a').forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const lang = this.getAttribute('data-lang');
+                        
+                        // تحديث اللغة الحالية
+                        currentLang = lang;
+                        
+                        // حفظ اللغة في التخزين المحلي
+                        localStorage.setItem('language', lang);
+                        
+                        // تطبيق اللغة
+                        applyLanguage(lang);
+                        
+                        // تحديث زر اللغة
+                        updateLanguageButton(lang);
+                    window.location.reload();
+                        
+                        // تحديث الكلاس النشط
+                        document.querySelectorAll('.language-dropdown a').forEach(a => {
+                            a.classList.remove('active');
+                        });
+                        this.classList.add('active');
+                    });
+                });
+                
+                // دالة تطبيق اللغة
+                function applyLanguage(lang) {
+                    // تعيين اتجاه الصفحة
+                    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+                    
+                    // إضافة الخط العربي إذا كانت اللغة عربية
+                    if (lang === 'ar' && !document.getElementById('arabic-font')) {
+                        const fontLink = document.createElement('link');
+                        fontLink.id = 'arabic-font';
+                        fontLink.rel = 'stylesheet';
+                        fontLink.href = 'https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap';
+                        document.head.appendChild(fontLink);
+                    }
+                    
+                    // تحديث جميع العناصر التي تحتاج إلى ترجمة
+                    document.querySelectorAll('[data-translate]').forEach(element => {
+                        const key = element.getAttribute('data-translate');
+                        
+                        if (translations[lang][key]) {
+                            if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+                                // للحقول النصية، نحدث السمة placeholder
+                                if (key.includes('placeholder')) {
+                                    element.placeholder = translations[lang][key];
+                                } else {
+                                    element.value = translations[lang][key];
+                                }
+                            } else {
+                                // للعناصر الأخرى، نحدث المحتوى HTML
+                                element.innerHTML = translations[lang][key];
+                            }
+                        }
+                    });
+                }
+                
+                // دالة تحديث زر اللغة
+                function updateLanguageButton(lang) {
+                    const langText = document.querySelector('.lang-text');
+                    if (langText) {
+                        langText.textContent = lang === 'en' ? 'English' : 'العربية';
+                    }
+                }
+            });
+        </script>
+</body>
+</html>

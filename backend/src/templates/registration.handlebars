@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html dir="{{dir}}" lang="{{lang}}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{title}}</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .header {
+      text-align: center;
+      padding: 20px 0;
+      border-bottom: 2px solid #f97316;
+    }
+    .logo {
+      max-width: 150px;
+    }
+    .content {
+      padding: 20px 0;
+    }
+    .footer {
+      text-align: center;
+      padding: 20px 0;
+      border-top: 1px solid #eee;
+      font-size: 12px;
+      color: #777;
+    }
+    .section {
+      background-color: #f9f9f9;
+      padding: 15px;
+      border-radius: 5px;
+      margin: 20px 0;
+    }
+    .section-title {
+      font-weight: bold;
+      color: #f97316;
+      font-size: 18px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 5px;
+    }
+    .field {
+      margin-bottom: 10px;
+    }
+    .field-label {
+      font-weight: bold;
+      color: #f97316;
+    }
+    .cta-button {
+      display: inline-block;
+      background-color: #f97316;
+      color: white;
+      text-decoration: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      margin: 20px 0;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <img src="https://evolve-fitness.com/logo.png" alt="Evolve Fitness" class="logo">
+    <h1>{{title}}</h1>
+  </div>
+  
+  <div class="content">
+    <p>{{greeting}},</p>
+    <p>{{intro}}</p>
+    
+    <div class="section">
+      <div class="section-title">{{personalInfoTitle}}</div>
+      <div class="field">
+        <span class="field-label">{{nameLabel}}:</span> {{firstName}} {{lastName}}
+      </div>
+      <div class="field">
+        <span class="field-label">{{emailLabel}}:</span> {{email}}
+      </div>
+      {{#if phone}}
+      <div class="field">
+        <span class="field-label">{{phoneLabel}}:</span> {{phone}}
+      </div>
+      {{/if}}
+      {{#if dateOfBirth}}
+      <div class="field">
+        <span class="field-label">{{dateOfBirthLabel}}:</span> {{dateOfBirth}}
+      </div>
+      {{/if}}
+      {{#if gender}}
+      <div class="field">
+        <span class="field-label">{{genderLabel}}:</span> {{gender}}
+      </div>
+      {{/if}}
+    </div>
+    
+    <div class="section">
+      <div class="section-title">{{goalsTitle}}</div>
+      <div class="field">
+        <span class="field-label">{{primaryGoalLabel}}:</span> {{primaryGoal}}
+      </div>
+      {{#if currentWeight}}
+      <div class="field">
+        <span class="field-label">{{currentWeightLabel}}:</span> {{currentWeight}}
+      </div>
+      {{/if}}
+      {{#if targetWeight}}
+      <div class="field">
+        <span class="field-label">{{targetWeightLabel}}:</span> {{targetWeight}}
+      </div>
+      {{/if}}
+      {{#if height}}
+      <div class="field">
+        <span class="field-label">{{heightLabel}}:</span> {{height}}
+      </div>
+      {{/if}}
+      {{#if activityLevel}}
+      <div class="field">
+        <span class="field-label">{{activityLevelLabel}}:</span> {{activityLevel}}
+      </div>
+      {{/if}}
+    </div>
+    
+    {{#if workoutFrequency}}
+    <div class="section">
+      <div class="section-title">{{lifestyleTitle}}</div>
+      <div class="field">
+        <span class="field-label">{{workoutFrequencyLabel}}:</span> {{workoutFrequency}}
+      </div>
+      {{#if preferredWorkoutTime}}
+      <div class="field">
+        <span class="field-label">وقت التمرين المفضل:</span> {{preferredWorkoutTime}}
+      </div>
+      {{/if}}
+      {{#if sleepHours}}
+      <div class="field">
+        <span class="field-label">ساعات النوم:</span> {{sleepHours}}
+      </div>
+      {{/if}}
+      {{#if stressLevel}}
+      <div class="field">
+        <span class="field-label">مستوى التوتر:</span> {{stressLevel}}
+      </div>
+      {{/if}}
+      {{#if smokingStatus}}
+      <div class="field">
+        <span class="field-label">حالة التدخين:</span> {{smokingStatus}}
+      </div>
+      {{/if}}
+    </div>
+    {{/if}}
+    
+    {{#if dietaryRestrictions}}
+    <div class="section">
+      <div class="section-title">التفضيلات والدعم</div>
+      <div class="field">
+        <span class="field-label">القيود الغذائية:</span> {{dietaryRestrictions}}
+      </div>
+      {{#if foodAllergies}}
+      <div class="field">
+        <span class="field-label">الحساسية الغذائية:</span> {{foodAllergies}}
+      </div>
+      {{/if}}
+      {{#if supplementPreferences}}
+      <div class="field">
+        <span class="field-label">تفضيلات المكملات الغذائية:</span> {{supplementPreferences}}
+      </div>
+      {{/if}}
+      {{#if communicationPreference}}
+      <div class="field">
+        <span class="field-label">تفضيل التواصل:</span> {{communicationPreference}}
+      </div>
+      {{/if}}
+      {{#if emergencyContact}}
+      <div class="field">
+        <span class="field-label">جهة اتصال الطوارئ:</span> {{emergencyContact}}
+      </div>
+      {{/if}}
+      {{#if emergencyPhone}}
+      <div class="field">
+        <span class="field-label">هاتف جهة اتصال الطوارئ:</span> {{emergencyPhone}}
+      </div>
+      {{/if}}
+    </div>
+    {{/if}}
+    
+    <p>{{nextStepsText}}</p>
+    
+    {{#if callToActionUrl}}
+    <div style="text-align: center;">
+      <a href="{{callToActionUrl}}" class="cta-button">{{callToActionText}}</a>
+    </div>
+    {{/if}}
+    
+    <p>{{outroText}}</p>
+  </div>
+  
+  <div class="footer">
+    <p>© {{year}} Evolve Fitness. {{rightsText}}</p>
+  </div>
+</body>
+</html>

@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "name": "Grilled Chicken Breast",
+    "image": "images/meal-1.jpg",
+    "description": "Lean grilled chicken breast served with steamed vegetables and brown rice.",
+    "usage": "High-protein meal ideal for muscle building and recovery.",
+    "price": 45
+  },
+  {
+    "id": 2,
+    "name": "Salmon Power Bowl",
+    "image": "images/meal-2.jpg",
+    "description": "Oven-baked salmon fillet with quinoa, avocado, and mixed greens.",
+    "usage": "Rich in omega-3 and healthy fats for optimal performance.",
+    "price": 55
+  },
+  {
+    "id": 3,
+    "name": "Vegan Lentil Stew",
+    "image": "images/meal-3.jpg",
+    "description": "Hearty lentil stew with carrots, potatoes, and aromatic spices.",
+    "usage": "Plant-based meal packed with fiber and protein.",
+    "price": 38
+  }
+]

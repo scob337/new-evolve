@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-translate="menu_title">Menu</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header (copied from index.html for consistency) -->
+    <header>
+        <div class="container">
+            <div class="logo">
+                <img src="images/evolve-logo.svg" alt="EVOLVE Logo">
+            </div>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="index.html" data-translate="home">Home</a></li>
+                    <li><a href="index.html#about" data-translate="about">About</a></li>
+                    <li><a href="index.html#services" data-translate="services">Services</a></li>
+                    <li><a href="menu.html" class="active" data-translate="menu_title">Menu</a></li>
+                    <li><a href="register.html"  data-translate="register_nav">Register</a></li>
+                     <li><a href="index.html#contact" data-translate="contact">Contact</a></li>
+                    
+                     <li class="language-switcher">
+                        <button id="lang-toggle" class="lang-btn">
+                            <span class="lang-text">English</span>
+                            <i class="fas fa-globe"></i>
+                        </button>
+                        <div class="language-dropdown">
+                            <a href="#" data-lang="en" class="active">English</a>
+                            <a href="#" data-lang="ar">العربية</a>
+                        </div>
+                    </li>
+                </ul>
+                <div class="hamburger">
+                    <i class="fas fa-bars"></i>
+                </div>
+            </nav>
+        </div>
+    </header>
+    <!-- Menu Section -->
+    <section class="menu-section">
+        <div class="container">
+            <h2 class="section-title" data-translate="menu_title">Menu</h2>
+            <div class="divider"></div>
+            <div id="meals-list" class="meals-list"></div>
+        </div>
+    </section>
+    <!-- Back to Top Button -->
+    <button id="back-to-top" class="back-to-top">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+    
+    <!-- Footer -->
+    <br/>
+    <br/>
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo" data-aos="fade-up">
+                    <img src="images/evolve-logo.svg" alt="EVOLVE Logo">
+                    <p data-translate="tagline">Redefining Athletic Excellence in Saudi Arabia</p>
+                    <div class="social-links">
+                        <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://www.instagram.com/evolve.saudi" class="social-link"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-links" data-aos="fade-up" data-aos-delay="100">
+                    <h3 data-translate="quick_links">Quick Links</h3>
+                    <ul>
+                        <li><a href="#home" data-translate="home">Home</a></li>
+                        <li><a href="#about" data-translate="about_us">About Us</a></li>
+                        <li><a href="#services" data-translate="services_footer">Services</a></li>
+                                              <li><a href="index.html#contact" data-translate="contact">Contact</a></li>
+                    <li><a href="register.html" class="active" data-translate="register_nav">Register</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-links" data-aos="fade-up" data-aos-delay="200">
+                    <h3 data-translate="services_footer">Services</h3>
+                    <ul>
+                        <li data-translate="training_programs">Training Programs</li>
+                        <li data-translate="nutrition_plans">Nutrition Plans</li>
+                        <li data-translate="one_on_one">1-on-1 Coaching</li>
+                        <li data-translate="corporate_packages">Corporate Packages</li>
+                    </ul>
+                </div>
+
+                <div class="footer-hours" data-aos="fade-up" data-aos-delay="300">
+                    <h3 data-translate="opening_hours">Opening Hours</h3>
+                    <ul>
+                        <li data-translate="monday_friday">Monday - Friday: 6am - 10pm</li>
+                        <li data-translate="saturday">Saturday: 8am - 8pm</li>
+                        <li data-translate="sunday">Sunday: 8am - 6pm</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; <script>document.write(new Date().getFullYear())</script> EVOLVE. <span data-translate="rights_reserved">All Rights Reserved.</span></p>
+            </div>
+        </div>
+    </footer>
+
+
+
+    <script src="translations.js" ></script>
+    <script>
+    // Wait for the DOM to be fully loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        const hamburger = document.querySelector('.hamburger');
+        const navLinks = document.querySelector('.nav-links');
+        const header = document.querySelector('header');
+        const backToTopButton = document.getElementById('back-to-top');
+        
+        // Function to handle mobile menu
+        function handleMobileMenu() {
+            // Toggle mobile menu
+            if (hamburger && navLinks) {
+                hamburger.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    navLinks.classList.toggle('active');
+                    document.body.style.overflow = navLinks.classList.contains('active') ? 'hidden' : '';
+                    
+                    // Toggle hamburger icon
+                    const icon = this.querySelector('i');
+                    if (navLinks.classList.contains('active')) {
+                        icon.classList.remove('fa-bars');
+                        icon.classList.add('fa-times');
+                    } else {
+                        icon.classList.remove('fa-times');
+                        icon.classList.add('fa-bars');
+                    }
+                });
+                
+                // Close menu when clicking on a link
+                const navItems = document.querySelectorAll('.nav-links a');
+                navItems.forEach(item => {
+                    item.addEventListener('click', function() {
+                        navLinks.classList.remove('active');
+                        document.body.style.overflow = '';
+                        const icon = hamburger.querySelector('i');
+                        icon.classList.remove('fa-times');
+                        icon.classList.add('fa-bars');
+                    });
+                });
+                
+                // Close menu when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!navLinks.contains(e.target) && !hamburger.contains(e.target) && navLinks.classList.contains('active')) {
+                        navLinks.classList.remove('active');
+                        document.body.style.overflow = '';
+                        const icon = hamburger.querySelector('i');
+                        icon.classList.remove('fa-times');
+                        icon.classList.add('fa-bars');
+                    }
+                });
+            }
+        }
+        
+        // Back to top functionality
+        function setupBackToTop() {
+            if (backToTopButton) {
+                window.addEventListener('scroll', function() {
+                    if (window.scrollY > 300) {
+                        backToTopButton.classList.add('show');
+                    } else {
+                        backToTopButton.classList.remove('show');
+                    }
+                });
+                
+                backToTopButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                });
+            }
+        }
+        
+        // Initialize functions
+        handleMobileMenu();
+        setupBackToTop();
+    });
+    
+
+
+    // Language and translation logic (same as index.html)
+    document.addEventListener('DOMContentLoaded', function() {
+        let currentLang = localStorage.getItem('language') || 'en';
+        applyLanguage(currentLang);
+        updateLanguageButton(currentLang);
+        document.querySelectorAll('.language-dropdown a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const lang = this.getAttribute('data-lang');
+                currentLang = lang;
+                localStorage.setItem('language', lang);
+                applyLanguage(lang);
+                updateLanguageButton(lang);
+                window.location.reload();
+                document.querySelectorAll('.language-dropdown a').forEach(a => {
+                    a.classList.remove('active');
+                });
+                this.classList.add('active');
+            });
+        });
+
+        function applyLanguage(lang) {
+            document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+            if (lang === 'ar' && !document.getElementById('arabic-font')) {
+                const fontLink = document.createElement('link');
+                fontLink.id = 'arabic-font';
+                fontLink.rel = 'stylesheet';
+                fontLink.href = 'https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap';
+                document.head.appendChild(fontLink);
+            }
+            document.querySelectorAll('[data-translate]').forEach(element => {
+                const key = element.getAttribute('data-translate');
+                if (translations[lang] && typeof translations[lang][key] !== 'undefined') {
+                    if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+                        if (key.includes('placeholder')) {
+                            element.placeholder = translations[lang][key];
+                        } else {
+                            element.value = translations[lang][key];
+                        }
+                    } else {
+                        element.innerHTML = translations[lang][key];
+                    }
+                }
+            });
+        }
+        function updateLanguageButton(lang) {
+            const langText = document.querySelector('.lang-text');
+            if (langText) {
+                langText.textContent = lang === 'en' ? 'English' : 'العربية';
+            }
+        }
+        // Fetch and display meals
+        function loadMeals(lang) {
+            const mealsFile = lang === 'ar' ? 'meals-ar.json' : 'meals-en.json';
+            fetch(mealsFile)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(meals => {
+            console.log('Fetched meals:', meals);
+                    const mealsList = document.getElementById('meals-list');
+                    mealsList.innerHTML = '';
+                    if (!meals || meals.length === 0) {
+                        mealsList.innerHTML = `<div class="no-meals" data-translate="no_meals">No meals found.</div>`;
+                        applyLanguage(lang);
+                        return;
+                    }
+                    meals.forEach(meal => {
+    // ... (existing code remains)
+
+                        const mealCard = document.createElement('div');
+                        mealCard.className = 'meal-card';
+                        mealCard.innerHTML = `
+                            <div class="meal-img-wrap">
+                                <img src="${meal.image}" alt="${meal.name}" class="meal-img">
+                            </div>
+                            <div class="meal-content">
+                                <h3 class="meal-name">${meal.name}</h3>
+                                <p class="meal-description">${meal.description}</p>
+                                <p class="meal-usage"><strong data-translate="usage">Usage:</strong> ${meal.usage}</p>
+                                <p class="meal-price"><strong data-translate="price">Price:</strong> ${meal.price} <span data-translate="currency">SAR</span></p>
+                                 <a href="details.html?id=${meal.id}"><button class="details-btn" data-translate="view_details">View Details</button></a>
+                            </div>
+                        `;
+                        mealsList.appendChild(mealCard);
+    });
+    // Add event delegation for details button
+    // mealsList.addEventListener('click', function(e) {
+    //     if (e.target.classList.contains('details-btn')) {
+    //         const mealId = e.target.getAttribute('data-id');
+    //         window.location.href = ;
+    //     }
+    // });
+    applyLanguage(lang);
+                })
+                .catch(err => {
+            console.error('Error loading meals:', err);
+                    const mealsList = document.getElementById('meals-list');
+                    mealsList.innerHTML = `<div class="no-meals" data-translate="no_meals">No meals found or error loading data.</div>`;
+                    applyLanguage(lang);
+                });
+        }
+        loadMeals(currentLang);
+    });
+    </script>
+    <style>
+    .meals-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 32px;
+        justify-content: center;
+        margin-top: 40px;
+    }
+    .meal-card {
+        background: #fff;
+        border-radius: 18px;
+        box-shadow: 0 2px 16px rgba(0,0,0,0.10);
+        width: 350px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transition: box-shadow 0.2s, transform 0.2s;
+        border: 1px solid #eee;
+    }
+    .meal-card:hover {
+        box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+        transform: translateY(-4px) scale(1.02);
+    }
+    .meal-img-wrap {
+        width: 100%;
+        height: 210px;
+        background: #fafafa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-bottom: 1px solid #f2f2f2;
+    }
+    .meal-img {
+        max-width: 95%;
+        max-height: 190px;
+        border-radius: 12px;
+        object-fit: cover;
+        background: #f5f5f5;
+    }
+    .meal-content {
+        padding: 28px 22px 18px 22px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .meal-name {
+        font-size: 1.35em;
+        margin-bottom: 10px;
+        color: #e67e22;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+    }
+    .meal-description {
+        font-size: 1.05em;
+        margin-bottom: 10px;
+        color: #333;
+        min-height: 48px;
+    }
+    .meal-usage {
+        font-size: 0.98em;
+        margin-bottom: 10px;
+        color: #555;
+    }
+    .meal-price {
+        font-size: 1.12em;
+        font-weight: bold;
+        color: #27ae60;
+        margin-bottom: 12px;
+    }
+    .details-btn {
+        background: #e67e22;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 22px;
+        font-size: 1em;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: auto;
+        transition: background 0.15s;
+    }
+    .details-btn:hover {
+        background: #cf711f;
+    }
+    .no-meals {
+        font-size: 1.1em;
+        color: #888;
+        padding: 48px 0;
+        text-align: center;
+        width: 100%;
+    }
+    @media (max-width: 600px) {
+        .meal-card {
+            width: 98%;
+        }
+        .meal-img-wrap {
+            height: 150px;
+        }
+    }
+
+    </style>
+</body>
+</html>
