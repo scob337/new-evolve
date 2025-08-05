@@ -14,7 +14,14 @@ const PORT = process.env.PORT || 5000;
 
 // الوسائط (Middleware)
 app.use(helmet());
-app.use(cors());
+app.use(cors({
+  origin: [
+    'https://evolvetheapp.com',
+    'https://www.evolvetheapp.com'
+  ],
+  methods: ['GET','POST','PUT','PATCH','DELETE'],
+  credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
