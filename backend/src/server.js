@@ -17,7 +17,9 @@ app.use(helmet());
 app.use(cors({
   origin: [
     'https://evolvetheapp.com',
-    'https://www.evolvetheapp.com'
+    'https://www.evolvetheapp.com',
+    'http://localhost:3000', // للتطوير المحلي
+    'http://localhost:5173'  // للتطوير مع Vite
   ],
   methods: ['GET','POST','PUT','PATCH','DELETE'],
   credentials: true

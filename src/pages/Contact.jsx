@@ -65,7 +65,8 @@ const Contact = () => {
     setIsSubmitting(true);
     
     try {
-      const response = await fetch('http://localhost:5000/api/contact', {
+      // تغيير من localhost إلى نطاق الإنتاج
+      const response = await fetch('https://www.evolvetheapp.com/api/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

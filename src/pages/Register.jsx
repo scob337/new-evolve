@@ -133,7 +133,7 @@ const Register = () => {
     setIsSubmitting(true);
     
     try {
-      const response = await fetch('https://evolvetheapp.com/api/register', {
+      const response = await fetch('https://www.evolvetheapp.com/api/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
