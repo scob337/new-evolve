@@ -5,83 +5,259 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{subject}}</title>
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
     body {
-      font-family: Arial, sans-serif;
-      line-height: 1.6;
-      color: #333;
-      max-width: 600px;
+      font-family: 'Segoe UI', 'Tahoma', 'Arial', sans-serif;
+      line-height: 1.8;
+      color: #2c3e50;
+      background-color: #f8fafc;
+      direction: rtl;
+      text-align: right;
+    }
+    
+    .email-container {
+      max-width: 650px;
       margin: 0 auto;
-      padding: 20px;
+      background-color: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      direction: rtl;
     }
+    
     .header {
+      background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+      color: white;
       text-align: center;
-      padding: 20px 0;
-      border-bottom: 2px solid #f97316;
+      padding: 40px 30px;
+      direction: rtl;
     }
+    
+    .header h1 {
+      font-size: 32px;
+      font-weight: 700;
+      margin: 0;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      text-align: center;
+    }
+    
     .logo {
-      max-width: 150px;
+      max-width: 140px;
+      margin-bottom: 20px;
+      filter: brightness(0) invert(1);
     }
+    
     .content {
-      padding: 20px 0;
+      padding: 40px 30px;
+      direction: rtl;
+      text-align: right;
     }
-    .footer {
-      text-align: center;
-      padding: 20px 0;
-      border-top: 1px solid #eee;
-      font-size: 12px;
-      color: #777;
+    
+    .greeting {
+      font-size: 20px;
+      font-weight: 600;
+      color: #1f2937;
+      margin-bottom: 20px;
+      text-align: right;
+      direction: rtl;
     }
-    .message-details {
-      background-color: #f9f9f9;
-      padding: 15px;
-      border-radius: 5px;
-      margin: 20px 0;
+    
+    .intro {
+      font-size: 16px;
+      color: #4b5563;
+      margin-bottom: 30px;
+      line-height: 1.8;
+      text-align: right;
+      direction: rtl;
     }
+    
+    .message-card {
+      background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%);
+      border: 2px solid #f97316;
+      border-radius: 16px;
+      padding: 30px;
+      margin: 30px 0;
+      direction: rtl;
+      box-shadow: 0 4px 12px rgba(249, 115, 22, 0.1);
+    }
+    
     .message-field {
-      margin-bottom: 10px;
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 20px;
+      padding: 15px 0;
+      border-bottom: 1px solid #fed7aa;
+      direction: rtl;
+      text-align: right;
     }
-    .message-label {
-      font-weight: bold;
+    
+    .message-field:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+    }
+    
+    .field-label {
+      font-weight: 700;
+      color: #ea580c;
+      font-size: 16px;
+      min-width: 120px;
+      margin-left: 15px;
+      text-align: right;
+      direction: rtl;
+    }
+    
+    .field-value {
+      color: #374151;
+      font-size: 15px;
+      flex: 1;
+      text-align: right;
+      direction: rtl;
+    }
+    
+    .message-text {
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 12px;
+      margin-top: 10px;
+      border: 1px solid #fed7aa;
+      color: #374151;
+      line-height: 1.7;
+      text-align: right;
+      direction: rtl;
+      font-size: 15px;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+    
+    .outro {
+      font-size: 16px;
+      color: #4b5563;
+      margin-top: 30px;
+      padding: 20px;
+      background-color: #f9fafb;
+      border-radius: 12px;
+      border-right: 4px solid #f97316;
+      text-align: right;
+      direction: rtl;
+    }
+    
+    .footer {
+      background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+      color: #d1d5db;
+      text-align: center;
+      padding: 30px;
+      direction: rtl;
+    }
+    
+    .footer p {
+      margin: 0 0 15px 0;
+      font-size: 14px;
+      text-align: center;
+    }
+    
+    .brand-footer {
+      font-weight: 600;
       color: #f97316;
+      font-size: 16px;
+      margin-top: 15px;
+      text-align: center;
+    }
+    
+    .divider {
+      height: 3px;
+      background: linear-gradient(90deg, #f97316 0%, #ea580c 100%);
+      margin: 0;
+      border: none;
+    }
+    
+    @media (max-width: 600px) {
+      .email-container {
+        margin: 10px;
+        border-radius: 12px;
+      }
+      
+      .content {
+        padding: 25px 20px;
+      }
+      
+      .header {
+        padding: 25px 20px;
+      }
+      
+      .header h1 {
+        font-size: 26px;
+      }
+      
+      .message-card {
+        padding: 20px;
+      }
+      
+      .field-label {
+        min-width: 100px;
+        font-size: 14px;
+      }
+      
+      .field-value {
+        font-size: 14px;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="header">
-    <img src="https://evolve-fitness.com/logo.png" alt="Evolve Fitness" class="logo">
-    <h1>{{title}}</h1>
-  </div>
-  
-  <div class="content">
-    <p>{{greeting}},</p>
-    <p>{{intro}}</p>
-    
-    <div class="message-details">
-      <div class="message-field">
-        <span class="message-label">{{nameLabel}}:</span> {{name}}
-      </div>
-      <div class="message-field">
-        <span class="message-label">{{emailLabel}}:</span> {{email}}
-      </div>
-      {{#if phone}}
-      <div class="message-field">
-        <span class="message-label">{{phoneLabel}}:</span> {{phone}}
-      </div>
-      {{/if}}
-      <div class="message-field">
-        <span class="message-label">{{subjectLabel}}:</span> {{subject}}
-      </div>
-      <div class="message-field">
-        <span class="message-label">{{messageLabel}}:</span>
-        <p>{{message}}</p>
-      </div>
+  <div class="email-container">
+    <div class="header">
+      <img src="https://evolve-fitness.com/logo.png" alt="Evolve Fitness" class="logo">
+      <h1>{{title}}</h1>
     </div>
     
-    <p>{{outro}}</p>
-  </div>
-  
-  <div class="footer">
-    <p>© {{year}} Evolve Fitness. {{rightsText}}</p>
+    <hr class="divider">
+    
+    <div class="content">
+      <div class="greeting">{{greeting}},</div>
+      <div class="intro">{{intro}}</div>
+      
+      <div class="message-card">
+        <div class="message-field">
+          <div class="field-label">{{nameLabel}}:</div>
+          <div class="field-value">{{name}}</div>
+        </div>
+        
+        <div class="message-field">
+          <div class="field-label">{{emailLabel}}:</div>
+          <div class="field-value">{{email}}</div>
+        </div>
+        
+        {{#if phone}}
+        <div class="message-field">
+          <div class="field-label">{{phoneLabel}}:</div>
+          <div class="field-value">{{phone}}</div>
+        </div>
+        {{/if}}
+        
+        <div class="message-field">
+          <div class="field-label">{{subjectLabel}}:</div>
+          <div class="field-value">{{subject}}</div>
+        </div>
+        
+        <div class="message-field">
+          <div class="field-label">{{messageLabel}}:</div>
+          <div class="field-value">
+            <div class="message-text">{{message}}</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="outro">{{outro}}</div>
+    </div>
+    
+    <div class="footer">
+      <p>© {{year}} Evolve Fitness. {{rightsText}}</p>
+      <div class="brand-footer">🏋️ رحلتك نحو صحة أفضل تبدأ هنا</div>
+    </div>
   </div>
 </body>
 </html>

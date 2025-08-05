@@ -7,30 +7,19 @@ const router = express.Router();
 router.post(
   '/',
   [
-    // التحقق من البيانات الشخصية
-    body('firstName').notEmpty().withMessage('الاسم الأول مطلوب'),
-    body('lastName').notEmpty().withMessage('الاسم الأخير مطلوب'),
-    body('email').isEmail().withMessage('البريد الإلكتروني غير صالح'),
-    body('phone').notEmpty().withMessage('رقم الهاتف مطلوب'),
-    body('dateOfBirth').notEmpty().withMessage('تاريخ الميلاد مطلوب'),
+    // Basic Information validation
+    body('fullName').notEmpty().withMessage('الاسم الكامل مطلوب'),
+    body('age').notEmpty().withMessage('العمر مطلوب'),
     body('gender').notEmpty().withMessage('الجنس مطلوب'),
-    
-    // التحقق من أهداف الصحة
-    body('primaryGoal').notEmpty().withMessage('الهدف الرئيسي مطلوب'),
-    body('currentWeight').notEmpty().withMessage('الوزن الحالي مطلوب'),
     body('height').notEmpty().withMessage('الطول مطلوب'),
-    body('activityLevel').notEmpty().withMessage('مستوى النشاط مطلوب'),
+    body('weight').notEmpty().withMessage('الوزن مطلوب'),
+    body('occupation').notEmpty().withMessage('المهنة مطلوبة'),
+    body('cityCountry').notEmpty().withMessage('المدينة والدولة مطلوبة'),
     
-    // التحقق من نمط الحياة والعادات
-    body('workoutFrequency').notEmpty().withMessage('تكرار التمرين مطلوب'),
-    body('preferredWorkoutTime').notEmpty().withMessage('وقت التمرين المفضل مطلوب'),
-    body('sleepHours').notEmpty().withMessage('ساعات النوم مطلوبة'),
-    body('stressLevel').notEmpty().withMessage('مستوى التوتر مطلوب'),
-    
-    // التحقق من التفضيلات والدعم
-    body('communicationPreference').notEmpty().withMessage('تفضيل الاتصال مطلوب'),
-    body('emergencyContact').notEmpty().withMessage('جهة اتصال للطوارئ مطلوبة'),
-    body('emergencyPhone').notEmpty().withMessage('هاتف الطوارئ مطلوب')
+    // Goals & Motivation validation
+    body('targetWeight').notEmpty().withMessage('الوزن المستهدف مطلوب'),
+    body('targetDate').notEmpty().withMessage('التاريخ المستهدف مطلوب'),
+    body('motivationLevel').notEmpty().withMessage('مستوى الدافعية مطلوب')
   ],
   registerController.submitRegistration
 );

@@ -2782,3 +2782,17 @@ html[dir="rtl"] .form-notification:before {
     left: auto;
     right: 16px;
 }
+
+/* Arabic Font Support */
+.font-arabic {
+  font-family: 'Segoe UI', 'Tahoma', 'Arial', sans-serif;
+}
+
+/* RTL Support */
+[dir="rtl"] {
+  text-align: right;
+}
+
+[dir="rtl"] .space-x-reverse > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-x-reverse: 1;
+}

@@ -6,6 +6,7 @@
   "dependencies": {
     "@headlessui/react": "^1.7.17",
     "@heroicons/react": "^2.0.18",
+    "@sendgrid/mail": "^8.1.5",
     "aos": "^2.3.4",
     "clsx": "^2.0.0",
     "framer-motion": "^12.23.12",

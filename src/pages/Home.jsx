@@ -2,12 +2,71 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination, Navigation, Autoplay } from 'swiper/modules';
+import { useState } from 'react'; // إضافة useState
 import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';
 
 const Home = () => {
   const { t } = useTranslation();
+
+  // إضافة state للـ contact form
+  const [contactForm, setContactForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    message: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState('');
+
+  // دالة معالجة تغيير المدخلات
+  const handleContactInputChange = (e) => {
+    const { name, value } = e.target;
+    setContactForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // دالة إرسال نموذج الاتصال
+  const handleContactSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitMessage('');
+
+    try {
+      const response = await fetch('http://localhost:5000/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...contactForm,
+          subject: 'رسالة من الصفحة الرئيسية'
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setSubmitMessage('تم إرسال رسالتك بنجاح! سنتواصل معك قريباً.');
+        setContactForm({
+          name: '',
+          email: '',
+          phone: '',
+          message: ''
+        });
+      } else {
+        throw new Error(data.message || 'حدث خطأ أثناء إرسال الرسالة');
+      }
+    } catch (error) {
+      console.error('Contact form error:', error);
+      setSubmitMessage('حدث خطأ أثناء إرسال رسالتك. يرجى المحاولة مرة أخرى.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   // تكوين تأثيرات الحركة
   const fadeInUp = {
@@ -338,8 +397,17 @@ const Home = () => {
               viewport={{ once: true }}
             >
               <h3>{t('send_message')}</h3>
-              <div id="form-notification" className="form-notification"></div>
-              <form id="contact-form">
+              
+              {/* رسالة النتيجة */}
+              {submitMessage && (
+                <div className={`form-notification ${
+                  submitMessage.includes('بنجاح') ? 'success' : 'error'
+                }`}>
+                  {submitMessage}
+                </div>
+              )}
+              
+              <form onSubmit={handleContactSubmit}>
                 <div className="form-row">
                   <div className="form-group">
                     <label htmlFor="name">{t('name')}</label>
@@ -347,6 +415,8 @@ const Home = () => {
                       type="text" 
                       id="name" 
                       name="name" 
+                      value={contactForm.name}
+                      onChange={handleContactInputChange}
                       placeholder={t('enter_full_name')} 
                       required 
                     />
@@ -357,6 +427,8 @@ const Home = () => {
                       type="email" 
                       id="email" 
                       name="email" 
+                      value={contactForm.email}
+                      onChange={handleContactInputChange}
                       placeholder={t('enter_email')} 
                       required 
                     />
@@ -367,6 +439,8 @@ const Home = () => {
                       type="tel" 
                       id="phone" 
                       name="phone" 
+                      value={contactForm.phone}
+                      onChange={handleContactInputChange}
                       placeholder={t('enter_phone')} 
                       required 
                     />
@@ -377,24 +451,30 @@ const Home = () => {
                   <textarea 
                     id="message" 
                     name="message" 
+                    value={contactForm.message}
+                    onChange={handleContactInputChange}
                     placeholder={t('enter_message')} 
                     required
                   ></textarea>
                 </div>
-                <input type="hidden" name="_captcha" value="false" />
-                <input type="hidden" name="_next" value="https://evolvetheapp.com/thank-you.html" />
-                <input type="hidden" name="_template" value="table" />
+                
                 <motion.button 
                   type="submit" 
-                  id="submit-btn" 
                   className="btn"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  disabled={isSubmitting}
+                  whileHover={{ scale: isSubmitting ? 1 : 1.05 }}
+                  whileTap={{ scale: isSubmitting ? 1 : 0.95 }}
                 >
-                  <span>{t('send_message')}</span>
-                  <span className="loading-spinner">
-                    <i className="fas fa-spinner fa-spin"></i>
-                  </span>
+                  {isSubmitting ? (
+                    <>
+                      <span className="loading-spinner">
+                        <i className="fas fa-spinner fa-spin"></i>
+                      </span>
+                      <span>{t('sending')}</span>
+                    </>
+                  ) : (
+                    <span>{t('send_message')}</span>
+                  )}
                 </motion.button>
               </form>
             </motion.div>

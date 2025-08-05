@@ -5,32 +5,55 @@ import { Link } from 'react-router-dom';
 const Register = () => {
   const { t } = useTranslation();
   const [formData, setFormData] = useState({
-    // البيانات الشخصية
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    gender: '',
+    // Basic Information
+    fullName: '',
+    email: '', // إضافة حقل الإيميل
+    mobile: '', // إضافة حقل الموبايل
     age: '',
-    
-    // أهداف الصحة
-    primaryGoal: '',
-    currentWeight: '',
-    targetWeight: '',
+    gender: '',
     height: '',
+    weight: '',
+    occupation: '',
+    cityCountry: '',
     
-    // نمط الحياة
-    workoutFrequency: '',
+    // Goals & Motivation
+    targetWeight: '',
+    targetDate: '',
+    weightLossReasons: [],
+    motivationLevel: '',
+    
+    // Health & Medical
+    medicalConditions: [],
+    medications: '',
+    hasMedications: false,
+    foodAllergies: '',
+    hasFoodAllergies: false,
+    doctorClearance: '',
+    
+    // Current Habits
+    mealsPerDay: '',
+    eatingOutFrequency: '',
+    sugaryDrinks: '',
+    waterIntake: '',
     sleepHours: '',
-    stressLevel: '',
-    smokingStatus: '',
+    exerciseFrequency: '',
+    exerciseTypes: [],
     
-    // التفضيلات والدعم
+    // Preferences & Support
+    mealPlanPreference: '',
+    trainingInterest: [],
     dietaryRestrictions: '',
     hasDietaryRestrictions: false,
-    communicationPreference: '',
-    emergencyContact: '',
-    emergencyPhone: ''
+    coachGenderPreference: '',
+    supportLevel: '',
+    
+    // Lifestyle & Readiness
+    stressLevel: '',
+    smokingStatus: '',
+    alcoholConsumption: '',
+    biggestChallenge: '',
+    pastSuccesses: '',
+    hasSupport: ''
   });
   
   const [errors, setErrors] = useState({});
@@ -41,18 +64,30 @@ const Register = () => {
     const { name, value, type, checked } = e.target;
     
     if (type === 'checkbox') {
-      setFormData(prev => ({
-        ...prev,
-        [name]: checked
-      }));
+      if (name === 'weightLossReasons' || name === 'medicalConditions' || name === 'exerciseTypes' || name === 'trainingInterest') {
+        // Handle checkbox arrays
+        setFormData(prev => ({
+          ...prev,
+          [name]: checked 
+            ? [...prev[name], value]
+            : prev[name].filter(item => item !== value)
+        }));
+      } else {
+        // Handle single checkboxes
+        setFormData(prev => ({
+          ...prev,
+          [name]: checked
+        }));
+      }
     } else {
+      // Handle other input types
       setFormData(prev => ({
         ...prev,
         [name]: value
       }));
     }
     
-    // مسح الخطأ عند بدء الكتابة
+    // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -64,29 +99,21 @@ const Register = () => {
   const validateForm = () => {
     const newErrors = {};
     
-    // التحقق من البيانات الشخصية
-    if (!formData.firstName.trim()) newErrors.firstName = t('first_name_required');
-    if (!formData.lastName.trim()) newErrors.lastName = t('last_name_required');
-    if (!formData.email.trim()) newErrors.email = t('email_required');
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = t('email_invalid');
-    if (!formData.phone.trim()) newErrors.phone = t('phone_required');
-    if (!formData.age.trim()) newErrors.age = t('age_required');
-    if (!formData.gender) newErrors.gender = t('gender_required');
+    // Basic Information validation
+    if (!formData.fullName.trim()) newErrors.fullName = 'Full name is required';
+    if (!formData.email.trim()) newErrors.email = 'Email is required';
+    if (!formData.mobile.trim()) newErrors.mobile = 'Mobile is required';
+    if (!formData.age.trim()) newErrors.age = 'Age is required';
+    if (!formData.gender) newErrors.gender = 'Gender is required';
+    if (!formData.height.trim()) newErrors.height = 'Height is required';
+    if (!formData.weight.trim()) newErrors.weight = 'Weight is required';
+    if (!formData.occupation.trim()) newErrors.occupation = 'Occupation is required';
+    if (!formData.cityCountry.trim()) newErrors.cityCountry = 'City & Country is required';
     
-    // التحقق من أهداف الصحة
-    if (!formData.primaryGoal) newErrors.primaryGoal = t('primary_goal_required');
-    if (!formData.currentWeight.trim()) newErrors.currentWeight = t('current_weight_required');
-    if (!formData.targetWeight.trim()) newErrors.targetWeight = t('target_weight_required');
-    if (!formData.height.trim()) newErrors.height = t('height_required');
-    
-    // التحقق من نمط الحياة
-    if (!formData.workoutFrequency) newErrors.workoutFrequency = t('workout_frequency_required');
-    if (!formData.sleepHours) newErrors.sleepHours = t('sleep_hours_required');
-    
-    // التحقق من التفضيلات والدعم
-    if (!formData.communicationPreference) newErrors.communicationPreference = t('communication_preference_required');
-    if (!formData.emergencyContact.trim()) newErrors.emergencyContact = t('emergency_contact_required');
-    if (!formData.emergencyPhone.trim()) newErrors.emergencyPhone = t('emergency_phone_required');
+    // Goals & Motivation validation
+    if (!formData.targetWeight.trim()) newErrors.targetWeight = 'Target weight is required';
+    if (!formData.targetDate.trim()) newErrors.targetDate = 'Target date is required';
+    if (!formData.motivationLevel) newErrors.motivationLevel = 'Motivation level is required';
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -96,7 +123,6 @@ const Register = () => {
     e.preventDefault();
     
     if (!validateForm()) {
-      // التمرير إلى أول خطأ
       const firstErrorField = document.querySelector('.border-red-500');
       if (firstErrorField) {
         firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -121,12 +147,12 @@ const Register = () => {
         setIsSuccess(true);
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
-        throw new Error(data.message || t('registration_error'));
+        throw new Error(data.message || 'Registration failed');
       }
       
     } catch (error) {
       console.error('Registration error:', error);
-      alert(error.message || t('registration_error'));
+      alert(error.message || 'Registration failed. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -134,18 +160,18 @@ const Register = () => {
 
   if (isSuccess) {
     return (
-      <div className="pt-20 min-h-screen bg-gray-50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className=" min-h-screen bg-gray-50">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 ">
           <div className="bg-white rounded-lg shadow-xl p-8 text-center">
             <div className="w-20 h-20 bg-green-100 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">{t('registration_success_title')}</h2>
-            <p className="text-lg text-gray-600 mb-8">{t('registration_success_message')}</p>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Registration Successful!</h2>
+            <p className="text-lg text-gray-600 mb-8">Thank you for registering with EVOLVE. We will contact you shortly to begin your fitness journey.</p>
             <Link to="/" className="inline-block bg-orange-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-orange-600 transition duration-300">
-              {t('back_to_home')}
+              Back to Home
             </Link>
           </div>
         </div>
@@ -154,70 +180,88 @@ const Register = () => {
   }
 
   return (
-    <div className="pt-20 min-h-screen bg-gray-50">
-      {/* قسم العنوان */}
+    <div className=" min-h-screen bg-gray-50">
+      {/* Hero Section */}
       <section className="py-12 bg-gradient-to-r from-orange-500 to-red-500">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center text-white">
-            <h1 className="text-4xl font-bold mb-4" data-aos="fade-up">
-              {t('join_evolve')}
+            <h1 className="text-4xl font-bold mb-4">
+              Evolve Weight Loss Intake Survey
             </h1>
-            <p className="text-xl text-orange-100" data-aos="fade-up" data-aos-delay="200">
-              {t('registration_description')}
+            <p className="text-xl text-orange-100">
+              Complete this survey to start your personalized weight loss journey
             </p>
           </div>
         </div>
       </section>
 
-      {/* نموذج التسجيل */}
+      {/* Registration Form */}
       <section className="py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white rounded-lg shadow-xl overflow-hidden p-8">
             <form onSubmit={handleSubmit}>
-              {/* البيانات الشخصية */}
+              
+              {/* Basic Information */}
               <div className="mb-10">
-                <h3 className="text-2xl font-bold text-gray-900 mb-6">{t('personal_information')}</h3>
+                <h3 className="text-2xl font-bold text-gray-900 mb-6 border-b-2 border-orange-500 pb-2">Basic Information</h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
+                  <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t('first_name')} *
+                      Full Name *
                     </label>
                     <input
                       type="text"
-                      name="firstName"
-                      value={formData.firstName}
+                      name="fullName"
+                      value={formData.fullName}
                       onChange={handleInputChange}
                       className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
-                        errors.firstName ? 'border-red-500' : 'border-gray-300'
+                        errors.fullName ? 'border-red-500' : 'border-gray-300'
                       }`}
-                      placeholder={t('enter_first_name')}
+                      placeholder="Enter your full name"
                     />
-                    {errors.firstName && <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>}
+                    {errors.fullName && <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>}
+                  </div>
+                  
+                  {/* إضافة حقل الإيميل */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Email *
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
+                        errors.email ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                      placeholder="Enter your email"
+                    />
+                    {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+                  </div>
+                  
+                  {/* إضافة حقل الموبايل */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Mobile *
+                    </label>
+                    <input
+                      type="tel"
+                      name="mobile"
+                      value={formData.mobile}
+                      onChange={handleInputChange}
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
+                        errors.mobile ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                      placeholder="Enter your mobile number"
+                    />
+                    {errors.mobile && <p className="text-red-500 text-sm mt-1">{errors.mobile}</p>}
                   </div>
                   
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t('last_name')} *
-                    </label>
-                    <input
-                      type="text"
-                      name="lastName"
-                      value={formData.lastName}
-                      onChange={handleInputChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
-                        errors.lastName ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                      placeholder={t('enter_last_name')}
-                    />
-                    {errors.lastName && <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>}
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t('age')} *
+                      Age *
                     </label>
                     <input
                       type="number"
@@ -227,113 +271,120 @@ const Register = () => {
                       className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
                         errors.age ? 'border-red-500' : 'border-gray-300'
                       }`}
-                      placeholder={t('enter_age')}
+                      placeholder="Enter your age"
                     />
                     {errors.age && <p className="text-red-500 text-sm mt-1">{errors.age}</p>}
                   </div>
                   
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t('gender')} *
+                      Gender *
                     </label>
-                    <select
-                      name="gender"
-                      value={formData.gender}
-                      onChange={handleInputChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
-                        errors.gender ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                    >
-                      <option value="">{t('select_gender')}</option>
-                      <option value="male">{t('male')}</option>
-                      <option value="female">{t('female')}</option>
-                    </select>
+                    <div className="flex items-center space-x-6">
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          name="gender"
+                          value="male"
+                          checked={formData.gender === 'male'}
+                          onChange={handleInputChange}
+                          className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
+                        />
+                        <span className="ml-2 text-sm text-gray-700">Male</span>
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          name="gender"
+                          value="female"
+                          checked={formData.gender === 'female'}
+                          onChange={handleInputChange}
+                          className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
+                        />
+                        <span className="ml-2 text-sm text-gray-700">Female</span>
+                      </label>
+                    </div>
                     {errors.gender && <p className="text-red-500 text-sm mt-1">{errors.gender}</p>}
-                  </div>
-                </div>
-                
-                <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('email')} *
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
-                      errors.email ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder={t('enter_email')}
-                  />
-                  {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-                </div>
-                
-                <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('phone')} *
-                  </label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
-                      errors.phone ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder={t('enter_phone')}
-                  />
-                  {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
-                </div>
-              </div>
-              
-              {/* أهداف الصحة */}
-              <div className="mb-10">
-                <h3 className="text-2xl font-bold text-gray-900 mb-6">{t('health_goals')}</h3>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('primary_goal')} *
-                  </label>
-                  <select
-                    name="primaryGoal"
-                    value={formData.primaryGoal}
-                    onChange={handleInputChange}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
-                      errors.primaryGoal ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                  >
-                    <option value="">{t('select_goal')}</option>
-                    <option value="weight_loss">{t('weight_loss')}</option>
-                    <option value="muscle_gain">{t('muscle_gain')}</option>
-                    <option value="maintenance">{t('maintenance')}</option>
-                    <option value="athletic_performance">{t('athletic_performance')}</option>
-                    <option value="general_health">{t('general_health')}</option>
-                  </select>
-                  {errors.primaryGoal && <p className="text-red-500 text-sm mt-1">{errors.primaryGoal}</p>}
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t('current_weight')} (kg) *
-                    </label>
-                    <input
-                      type="number"
-                      name="currentWeight"
-                      value={formData.currentWeight}
-                      onChange={handleInputChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
-                        errors.currentWeight ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                      placeholder="70"
-                    />
-                    {errors.currentWeight && <p className="text-red-500 text-sm mt-1">{errors.currentWeight}</p>}
                   </div>
                   
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t('target_weight')} (kg) *
+                      Height (cm) *
+                    </label>
+                    <input
+                      type="number"
+                      name="height"
+                      value={formData.height}
+                      onChange={handleInputChange}
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
+                        errors.height ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                      placeholder="170"
+                    />
+                    {errors.height && <p className="text-red-500 text-sm mt-1">{errors.height}</p>}
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Weight (kg) *
+                    </label>
+                    <input
+                      type="number"
+                      name="weight"
+                      value={formData.weight}
+                      onChange={handleInputChange}
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
+                        errors.weight ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                      placeholder="70"
+                    />
+                    {errors.weight && <p className="text-red-500 text-sm mt-1">{errors.weight}</p>}
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Occupation *
+                    </label>
+                    <input
+                      type="text"
+                      name="occupation"
+                      value={formData.occupation}
+                      onChange={handleInputChange}
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
+                        errors.occupation ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                      placeholder="Enter your occupation"
+                    />
+                    {errors.occupation && <p className="text-red-500 text-sm mt-1">{errors.occupation}</p>}
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      City & Country *
+                    </label>
+                    <input
+                      type="text"
+                      name="cityCountry"
+                      value={formData.cityCountry}
+                      onChange={handleInputChange}
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
+                        errors.cityCountry ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                      placeholder="Riyadh, Saudi Arabia"
+                    />
+                    {errors.cityCountry && <p className="text-red-500 text-sm mt-1">{errors.cityCountry}</p>}
+                  </div>
+                </div>
+              </div>
+
+              {/* Goals & Motivation */}
+              <div className="mb-10">
+                <h3 className="text-2xl font-bold text-gray-900 mb-6 border-b-2 border-orange-500 pb-2">Goals & Motivation</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      What is your target weight? (kg) *
                     </label>
                     <input
                       type="number"
@@ -350,144 +401,493 @@ const Register = () => {
                   
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t('height')} (cm) *
+                      By when do you hope to achieve this? *
                     </label>
                     <input
-                      type="number"
-                      name="height"
-                      value={formData.height}
+                      type="date"
+                      name="targetDate"
+                      value={formData.targetDate}
                       onChange={handleInputChange}
                       className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
-                        errors.height ? 'border-red-500' : 'border-gray-300'
+                        errors.targetDate ? 'border-red-500' : 'border-gray-300'
                       }`}
-                      placeholder="170"
                     />
-                    {errors.height && <p className="text-red-500 text-sm mt-1">{errors.height}</p>}
+                    {errors.targetDate && <p className="text-red-500 text-sm mt-1">{errors.targetDate}</p>}
                   </div>
                 </div>
+                
+                <div className="mt-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Why do you want to lose weight? (Check all that apply)
+                  </label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {[
+                      'Improve health',
+                      'Improve appearance', 
+                      'Increase energy',
+                      'Boost confidence',
+                      'Prepare for an event',
+                      'Doctor\'s recommendation'
+                    ].map((reason) => (
+                      <label key={reason} className="flex items-center">
+                        <input
+                          type="checkbox"
+                          name="weightLossReasons"
+                          value={reason}
+                          checked={formData.weightLossReasons.includes(reason)}
+                          onChange={handleInputChange}
+                          className="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
+                        />
+                        <span className="ml-2 text-sm text-gray-700">{reason}</span>
+                      </label>
+                    ))}
+                    <div className="md:col-span-2">
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          name="weightLossReasons"
+                          value="other"
+                          checked={formData.weightLossReasons.includes('other')}
+                          onChange={handleInputChange}
+                          className="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
+                        />
+                        <span className="ml-2 text-sm text-gray-700">Other:</span>
+                        <input
+                          type="text"
+                          name="otherReason"
+                          value={formData.otherReason || ''}
+                          onChange={handleInputChange}
+                          className="ml-2 flex-1 px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                          placeholder="Specify other reason"
+                        />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    On a scale from 1–10, how motivated are you to lose weight? *
+                  </label>
+                  <div className="flex flex-wrap gap-3">
+                    {[1,2,3,4,5,6,7,8,9,10].map((level) => (
+                      <label key={level} className="flex items-center">
+                        <input
+                          type="radio"
+                          name="motivationLevel"
+                          value={level.toString()}
+                          checked={formData.motivationLevel === level.toString()}
+                          onChange={handleInputChange}
+                          className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
+                        />
+                        <span className="ml-1 text-sm text-gray-700">{level}</span>
+                      </label>
+                    ))}
+                  </div>
+                  {errors.motivationLevel && <p className="text-red-500 text-sm mt-1">{errors.motivationLevel}</p>}
+                </div>
               </div>
-              
-              {/* نمط الحياة */}
+
+              {/* Health & Medical */}
               <div className="mb-10">
-                <h3 className="text-2xl font-bold text-gray-900 mb-6">{t('lifestyle_habits')}</h3>
+                <h3 className="text-2xl font-bold text-gray-900 mb-6 border-b-2 border-orange-500 pb-2">Health & Medical</h3>
+                
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Do you have any of the following conditions? (Check all that apply)
+                  </label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {[
+                      'Diabetes',
+                      'High blood pressure',
+                      'High cholesterol',
+                      'PCOS',
+                      'Thyroid issues',
+                      'Joint problems',
+                      'Sleep apnea'
+                    ].map((condition) => (
+                      <label key={condition} className="flex items-center">
+                        <input
+                          type="checkbox"
+                          name="medicalConditions"
+                          value={condition}
+                          checked={formData.medicalConditions.includes(condition)}
+                          onChange={handleInputChange}
+                          className="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
+                        />
+                        <span className="ml-2 text-sm text-gray-700">{condition}</span>
+                      </label>
+                    ))}
+                    <div className="md:col-span-2">
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          name="medicalConditions"
+                          value="other"
+                          checked={formData.medicalConditions.includes('other')}
+                          onChange={handleInputChange}
+                          className="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
+                        />
+                        <span className="ml-2 text-sm text-gray-700">Other:</span>
+                        <input
+                          type="text"
+                          name="otherCondition"
+                          value={formData.otherCondition || ''}
+                          onChange={handleInputChange}
+                          className="ml-2 flex-1 px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                          placeholder="Specify other condition"
+                        />
+                      </label>
+                    </div>
+                  </div>
+                </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t('workout_frequency')} *
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Are you currently taking any medications?
                     </label>
-                    <select
-                      name="workoutFrequency"
-                      value={formData.workoutFrequency}
-                      onChange={handleInputChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
-                        errors.workoutFrequency ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                    >
-                      <option value="">{t('select_frequency')}</option>
-                      <option value="never">{t('never')}</option>
-                      <option value="1-2">{t('1_2_times_week')}</option>
-                      <option value="3-4">{t('3_4_times_week')}</option>
-                      <option value="5+">{t('5_plus_times_week')}</option>
-                    </select>
-                    {errors.workoutFrequency && <p className="text-red-500 text-sm mt-1">{errors.workoutFrequency}</p>}
+                    <div className="flex items-center space-x-6 mb-3">
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          name="hasMedications"
+                          value="true"
+                          checked={formData.hasMedications === true}
+                          onChange={() => setFormData({...formData, hasMedications: true})}
+                          className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
+                        />
+                        <span className="ml-2 text-sm text-gray-700">Yes</span>
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          name="hasMedications"
+                          value="false"
+                          checked={formData.hasMedications === false}
+                          onChange={() => setFormData({...formData, hasMedications: false})}
+                          className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
+                        />
+                        <span className="ml-2 text-sm text-gray-700">No</span>
+                      </label>
+                    </div>
+                    {formData.hasMedications && (
+                      <input
+                        type="text"
+                        name="medications"
+                        value={formData.medications}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                        placeholder="List your medications"
+                      />
+                    )}
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t('sleep_hours')} *
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Do you have any food allergies or intolerances?
                     </label>
-                    <select
-                      name="sleepHours"
-                      value={formData.sleepHours}
-                      onChange={handleInputChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
-                        errors.sleepHours ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                    >
-                      <option value="">{t('select_sleep_hours')}</option>
-                      <option value="less_than_5">{t('less_than_5')}</option>
-                      <option value="5-6">{t('5_6_hours')}</option>
-                      <option value="7-8">{t('7_8_hours')}</option>
-                      <option value="8+">{t('8_plus_hours')}</option>
-                    </select>
-                    {errors.sleepHours && <p className="text-red-500 text-sm mt-1">{errors.sleepHours}</p>}
+                    <div className="flex items-center space-x-6 mb-3">
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          name="hasFoodAllergies"
+                          value="true"
+                          checked={formData.hasFoodAllergies === true}
+                          onChange={() => setFormData({...formData, hasFoodAllergies: true})}
+                          className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
+                        />
+                        <span className="ml-2 text-sm text-gray-700">Yes</span>
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          name="hasFoodAllergies"
+                          value="false"
+                          checked={formData.hasFoodAllergies === false}
+                          onChange={() => setFormData({...formData, hasFoodAllergies: false})}
+                          className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
+                        />
+                        <span className="ml-2 text-sm text-gray-700">No</span>
+                      </label>
+                    </div>
+                    {formData.hasFoodAllergies && (
+                      <input
+                        type="text"
+                        name="foodAllergies"
+                        value={formData.foodAllergies}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                        placeholder="List your food allergies"
+                      />
+                    )}
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                <div className="mt-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Do you have clearance from a doctor to begin a diet or fitness plan?
+                  </label>
+                  <div className="flex items-center space-x-6">
+                    {['Yes', 'No', 'Not sure'].map((option) => (
+                      <label key={option} className="flex items-center">
+                        <input
+                          type="radio"
+                          name="doctorClearance"
+                          value={option.toLowerCase()}
+                          checked={formData.doctorClearance === option.toLowerCase()}
+                          onChange={handleInputChange}
+                          className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
+                        />
+                        <span className="ml-2 text-sm text-gray-700">{option}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Current Habits */}
+              <div className="mb-10">
+                <h3 className="text-2xl font-bold text-gray-900 mb-6 border-b-2 border-orange-500 pb-2">Current Habits</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t('stress_level')}
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      How many meals do you eat per day?
                     </label>
-                    <div className="flex items-center space-x-4 rtl:space-x-reverse">
-                      <label className="flex items-center space-x-2 rtl:space-x-reverse">
-                        <input
-                          type="radio"
-                          name="stressLevel"
-                          value="yes"
-                          checked={formData.stressLevel === 'yes'}
-                          onChange={handleInputChange}
-                          className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
-                        />
-                        <span className="text-sm text-gray-700">{t('yes')}</span>
-                      </label>
-                      <label className="flex items-center space-x-2 rtl:space-x-reverse">
-                        <input
-                          type="radio"
-                          name="stressLevel"
-                          value="no"
-                          checked={formData.stressLevel === 'no'}
-                          onChange={handleInputChange}
-                          className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
-                        />
-                        <span className="text-sm text-gray-700">{t('no')}</span>
-                      </label>
+                    <div className="flex items-center space-x-6">
+                      {['1', '2', '3', '4+'].map((option) => (
+                        <label key={option} className="flex items-center">
+                          <input
+                            type="radio"
+                            name="mealsPerDay"
+                            value={option}
+                            checked={formData.mealsPerDay === option}
+                            onChange={handleInputChange}
+                            className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
+                          />
+                          <span className="ml-2 text-sm text-gray-700">{option}</span>
+                        </label>
+                      ))}
                     </div>
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t('smoking_status')}
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      How often do you eat out or order food weekly?
                     </label>
-                    <div className="flex items-center space-x-4 rtl:space-x-reverse">
-                      <label className="flex items-center space-x-2 rtl:space-x-reverse">
+                    <div className="flex flex-wrap gap-3">
+                      {['Never', '1–2 times', '3–5 times', 'Daily'].map((option) => (
+                        <label key={option} className="flex items-center">
+                          <input
+                            type="radio"
+                            name="eatingOutFrequency"
+                            value={option}
+                            checked={formData.eatingOutFrequency === option}
+                            onChange={handleInputChange}
+                            className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
+                          />
+                          <span className="ml-2 text-sm text-gray-700">{option}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Do you consume sugary drinks (soda/juice/energy drinks)?
+                    </label>
+                    <div className="flex items-center space-x-6">
+                      {['Rarely', 'Sometimes', 'Daily'].map((option) => (
+                        <label key={option} className="flex items-center">
+                          <input
+                            type="radio"
+                            name="sugaryDrinks"
+                            value={option}
+                            checked={formData.sugaryDrinks === option}
+                            onChange={handleInputChange}
+                            className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
+                          />
+                          <span className="ml-2 text-sm text-gray-700">{option}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      On average, how much water do you drink per day?
+                    </label>
+                    <div className="flex flex-wrap gap-3">
+                      {['< 1L', '1–2L', '2–3L', '3+L'].map((option) => (
+                        <label key={option} className="flex items-center">
+                          <input
+                            type="radio"
+                            name="waterIntake"
+                            value={option}
+                            checked={formData.waterIntake === option}
+                            onChange={handleInputChange}
+                            className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
+                          />
+                          <span className="ml-2 text-sm text-gray-700">{option}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      How many hours of sleep do you get on average?
+                    </label>
+                    <div className="flex flex-wrap gap-3">
+                      {['< 5', '5–6', '7–8', '8+'].map((option) => (
+                        <label key={option} className="flex items-center">
+                          <input
+                            type="radio"
+                            name="sleepHours"
+                            value={option}
+                            checked={formData.sleepHours === option}
+                            onChange={handleInputChange}
+                            className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
+                          />
+                          <span className="ml-2 text-sm text-gray-700">{option}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      How often do you exercise per week?
+                    </label>
+                    <div className="flex flex-wrap gap-3">
+                      {['Never', '1–2x', '3–4x', '5+'].map((option) => (
+                        <label key={option} className="flex items-center">
+                          <input
+                            type="radio"
+                            name="exerciseFrequency"
+                            value={option}
+                            checked={formData.exerciseFrequency === option}
+                            onChange={handleInputChange}
+                            className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
+                          />
+                          <span className="ml-2 text-sm text-gray-700">{option}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    What type of exercise do you currently do (if any)?
+                  </label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {[
+                      'Walking',
+                      'Gym',
+                      'Home workouts',
+                      'Swimming',
+                      'Cycling'
+                    ].map((type) => (
+                      <label key={type} className="flex items-center">
                         <input
-                          type="radio"
-                          name="smokingStatus"
-                          value="yes"
-                          checked={formData.smokingStatus === 'yes'}
+                          type="checkbox"
+                          name="exerciseTypes"
+                          value={type}
+                          checked={formData.exerciseTypes.includes(type)}
                           onChange={handleInputChange}
-                          className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
+                          className="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
                         />
-                        <span className="text-sm text-gray-700">{t('yes')}</span>
+                        <span className="ml-2 text-sm text-gray-700">{type}</span>
                       </label>
-                      <label className="flex items-center space-x-2 rtl:space-x-reverse">
+                    ))}
+                    <div className="md:col-span-2">
+                      <label className="flex items-center">
                         <input
-                          type="radio"
-                          name="smokingStatus"
-                          value="no"
-                          checked={formData.smokingStatus === 'no'}
+                          type="checkbox"
+                          name="exerciseTypes"
+                          value="other"
+                          checked={formData.exerciseTypes.includes('other')}
                           onChange={handleInputChange}
-                          className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
+                          className="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
                         />
-                        <span className="text-sm text-gray-700">{t('no')}</span>
+                        <span className="ml-2 text-sm text-gray-700">Other:</span>
+                        <input
+                          type="text"
+                          name="otherExercise"
+                          value={formData.otherExercise || ''}
+                          onChange={handleInputChange}
+                          className="ml-2 flex-1 px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                          placeholder="Specify other exercise"
+                        />
                       </label>
                     </div>
                   </div>
                 </div>
               </div>
-              
-              {/* التفضيلات والدعم */}
+
+              {/* Preferences & Support */}
               <div className="mb-10">
-                <h3 className="text-2xl font-bold text-gray-900 mb-6">{t('preferences_support')}</h3>
+                <h3 className="text-2xl font-bold text-gray-900 mb-6 border-b-2 border-orange-500 pb-2">Preferences & Support</h3>
                 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('dietary_restrictions')}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Do you prefer:
                   </label>
-                  <div className="flex items-center space-x-4 rtl:space-x-reverse mb-2">
-                    <label className="flex items-center space-x-2 rtl:space-x-reverse">
+                  <div className="flex flex-wrap gap-3">
+                    {[
+                      'A structured meal plan',
+                      'Flexible eating with guidance',
+                      'Meal delivery'
+                    ].map((option) => (
+                      <label key={option} className="flex items-center">
+                        <input
+                          type="radio"
+                          name="mealPlanPreference"
+                          value={option}
+                          checked={formData.mealPlanPreference === option}
+                          onChange={handleInputChange}
+                          className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
+                        />
+                        <span className="ml-2 text-sm text-gray-700">{option}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Are you interested in:
+                  </label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {[
+                      'Personal training',
+                      'Group training',
+                      'Online training',
+                      'Nutrition consultation only'
+                    ].map((option) => (
+                      <label key={option} className="flex items-center">
+                        <input
+                          type="checkbox"
+                          name="trainingInterest"
+                          value={option}
+                          checked={formData.trainingInterest.includes(option)}
+                          onChange={handleInputChange}
+                          className="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
+                        />
+                        <span className="ml-2 text-sm text-gray-700">{option}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Do you have any religious or dietary restrictions?
+                  </label>
+                  <div className="flex items-center space-x-6 mb-3">
+                    <label className="flex items-center">
                       <input
                         type="radio"
                         name="hasDietaryRestrictions"
@@ -496,9 +896,9 @@ const Register = () => {
                         onChange={() => setFormData({...formData, hasDietaryRestrictions: true})}
                         className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
                       />
-                      <span className="text-sm text-gray-700">{t('yes')}</span>
+                      <span className="ml-2 text-sm text-gray-700">Yes</span>
                     </label>
-                    <label className="flex items-center space-x-2 rtl:space-x-reverse">
+                    <label className="flex items-center">
                       <input
                         type="radio"
                         name="hasDietaryRestrictions"
@@ -507,7 +907,7 @@ const Register = () => {
                         onChange={() => setFormData({...formData, hasDietaryRestrictions: false})}
                         className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
                       />
-                      <span className="text-sm text-gray-700">{t('no')}</span>
+                      <span className="ml-2 text-sm text-gray-700">No</span>
                     </label>
                   </div>
                   {formData.hasDietaryRestrictions && (
@@ -517,77 +917,183 @@ const Register = () => {
                       value={formData.dietaryRestrictions}
                       onChange={handleInputChange}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                      placeholder={t('enter_dietary_restrictions')}
+                      placeholder="Specify your dietary restrictions"
                     />
                   )}
                 </div>
                 
-                <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('communication_preference')} *
-                  </label>
-                  <select
-                    name="communicationPreference"
-                    value={formData.communicationPreference}
-                    onChange={handleInputChange}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
-                      errors.communicationPreference ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                  >
-                    <option value="">{t('select_communication')}</option>
-                    <option value="email">{t('email')}</option>
-                    <option value="phone">{t('phone')}</option>
-                    <option value="whatsapp">{t('whatsapp')}</option>
-                    <option value="app">{t('mobile_app')}</option>
-                  </select>
-                  {errors.communicationPreference && <p className="text-red-500 text-sm mt-1">{errors.communicationPreference}</p>}
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t('emergency_contact')} *
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Would you prefer a coach of a specific gender?
                     </label>
-                    <input
-                      type="text"
-                      name="emergencyContact"
-                      value={formData.emergencyContact}
-                      onChange={handleInputChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
-                        errors.emergencyContact ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                      placeholder={t('emergency_contact_name')}
-                    />
-                    {errors.emergencyContact && <p className="text-red-500 text-sm mt-1">{errors.emergencyContact}</p>}
+                    <div className="flex items-center space-x-6">
+                      {['Male', 'Female', 'No preference'].map((option) => (
+                        <label key={option} className="flex items-center">
+                          <input
+                            type="radio"
+                            name="coachGenderPreference"
+                            value={option}
+                            checked={formData.coachGenderPreference === option}
+                            onChange={handleInputChange}
+                            className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
+                          />
+                          <span className="ml-2 text-sm text-gray-700">{option}</span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t('emergency_phone')} *
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      How much support do you want from your coach?
                     </label>
-                    <input
-                      type="tel"
-                      name="emergencyPhone"
-                      value={formData.emergencyPhone}
-                      onChange={handleInputChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
-                        errors.emergencyPhone ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                      placeholder={t('emergency_contact_phone')}
-                    />
-                    {errors.emergencyPhone && <p className="text-red-500 text-sm mt-1">{errors.emergencyPhone}</p>}
+                    <div className="flex flex-wrap gap-3">
+                      {['Daily check-ins', 'Weekly check-ins', 'Monthly', 'Only as needed'].map((option) => (
+                        <label key={option} className="flex items-center">
+                          <input
+                            type="radio"
+                            name="supportLevel"
+                            value={option}
+                            checked={formData.supportLevel === option}
+                            onChange={handleInputChange}
+                            className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
+                          />
+                          <span className="ml-2 text-sm text-gray-700">{option}</span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
-              
-              {/* زر الإرسال */}
+
+              {/* Lifestyle & Readiness */}
+              <div className="mb-10">
+                <h3 className="text-2xl font-bold text-gray-900 mb-6 border-b-2 border-orange-500 pb-2">Lifestyle & Readiness</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Do you feel stressed regularly?
+                    </label>
+                    <div className="flex items-center space-x-6">
+                      {['Yes', 'No'].map((option) => (
+                        <label key={option} className="flex items-center">
+                          <input
+                            type="radio"
+                            name="stressLevel"
+                            value={option}
+                            checked={formData.stressLevel === option}
+                            onChange={handleInputChange}
+                            className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
+                          />
+                          <span className="ml-2 text-sm text-gray-700">{option}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Do you smoke or vape?
+                    </label>
+                    <div className="flex items-center space-x-6">
+                      {['Yes', 'No'].map((option) => (
+                        <label key={option} className="flex items-center">
+                          <input
+                            type="radio"
+                            name="smokingStatus"
+                            value={option}
+                            checked={formData.smokingStatus === option}
+                            onChange={handleInputChange}
+                            className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
+                          />
+                          <span className="ml-2 text-sm text-gray-700">{option}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Do you drink alcohol?
+                    </label>
+                    <div className="flex items-center space-x-6">
+                      {['Yes', 'No', 'Occasionally'].map((option) => (
+                        <label key={option} className="flex items-center">
+                          <input
+                            type="radio"
+                            name="alcoholConsumption"
+                            value={option}
+                            checked={formData.alcoholConsumption === option}
+                            onChange={handleInputChange}
+                            className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
+                          />
+                          <span className="ml-2 text-sm text-gray-700">{option}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Do you have a support system (friends/family)?
+                    </label>
+                    <div className="flex items-center space-x-6">
+                      {['Yes', 'No'].map((option) => (
+                        <label key={option} className="flex items-center">
+                          <input
+                            type="radio"
+                            name="hasSupport"
+                            value={option}
+                            checked={formData.hasSupport === option}
+                            onChange={handleInputChange}
+                            className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
+                          />
+                          <span className="ml-2 text-sm text-gray-700">{option}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    What's your biggest challenge when trying to lose weight?
+                  </label>
+                  <textarea
+                    name="biggestChallenge"
+                    value={formData.biggestChallenge}
+                    onChange={handleInputChange}
+                    rows={3}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    placeholder="Describe your biggest challenge..."
+                  />
+                </div>
+                
+                <div className="mt-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    What has worked for you in the past, if anything?
+                  </label>
+                  <textarea
+                    name="pastSuccesses"
+                    value={formData.pastSuccesses}
+                    onChange={handleInputChange}
+                    rows={3}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    placeholder="Describe what has worked for you before..."
+                  />
+                </div>
+              </div>
+
+              {/* Submit Button */}
               <div className="mt-8 flex justify-center">
                 <button
                   type="submit"
-                  className="bg-orange-500 text-white px-8 py-4 rounded-lg font-medium text-lg hover:bg-orange-600 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-orange-500 text-white px-12 py-4 rounded-lg font-medium text-lg hover:bg-orange-600 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? t('submitting') : t('complete_registration')}
+                  {isSubmitting ? 'Submitting Survey...' : 'Submit Survey'}
                 </button>
               </div>
             </form>

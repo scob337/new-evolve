@@ -24,7 +24,7 @@ exports.submitContactForm = async (req, res) => {
     await sendTemplateEmail({
       to: process.env.ADMIN_EMAIL,
       subject: `نموذج اتصال جديد: ${subject}`,
-      template: 'contact',
+      template: 'contact', // إضافة الـ template
       context: {
         dir: 'rtl',
         lang: 'ar',
@@ -41,7 +41,7 @@ exports.submitContactForm = async (req, res) => {
         phone,
         subject,
         message,
-        outro: 'يرجى الرد في أقرب وقت ممكن.',
+        outro: 'يرجى الرد على هذه الرسالة في أقرب وقت ممكن.',
         year: currentYear,
         rightsText: 'جميع الحقوق محفوظة'
       }
@@ -68,7 +68,7 @@ exports.submitContactForm = async (req, res) => {
         phone,
         subject,
         message,
-        outro: 'نشكرك على اهتمامك بخدماتنا.',
+        outro: 'نشكرك على اهتمامك بخدماتنا وسنتواصل معك قريباً.',
         year: currentYear,
         rightsText: 'جميع الحقوق محفوظة'
       }
