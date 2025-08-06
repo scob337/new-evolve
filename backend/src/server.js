@@ -18,8 +18,8 @@ app.use(cors({
   origin: [
     'https://evolvetheapp.com',
     'https://www.evolvetheapp.com',
-    'http://localhost:3000', // للتطوير المحلي
-    'http://localhost:5173'  // للتطوير مع Vite
+    'http://localhost:3000', 
+    'http://localhost:5173'  
   ],
   methods: ['GET','POST','PUT','PATCH','DELETE'],
   credentials: true

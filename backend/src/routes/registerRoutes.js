@@ -1,11 +1,14 @@
 const express = require('express');
 const { body } = require('express-validator');
 const registerController = require('../controllers/registerController');
+const multer = require('multer');
+const upload = multer(); // تخزين في الذاكرة (بدون ملفات)
 
 const router = express.Router();
 
 router.post(
   '/',
+  upload.none(),
   [
     // Basic Information validation
     body('fullName').notEmpty().withMessage('الاسم الكامل مطلوب'),
