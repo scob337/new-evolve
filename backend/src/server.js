@@ -1,5 +1,4 @@
 const express = require('express');
-const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const path = require('path');
@@ -14,16 +13,7 @@ const PORT = process.env.PORT || 5000;
 
 // الوسائط (Middleware)
 app.use(helmet());
-app.use(cors({
-  origin: [
-    'https://evolvetheapp.com',
-    'https://www.evolvetheapp.com',
-    'http://localhost:3000', 
-    'http://localhost:5173'  
-  ],
-  methods: ['GET','POST','PUT','PATCH','DELETE'],
-  credentials: true
-}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
