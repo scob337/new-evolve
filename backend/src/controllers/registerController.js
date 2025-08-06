@@ -189,7 +189,7 @@ exports.submitRegistration = async (req, res) => {
     
     // Send admin email
     await sendTemplateEmail({
-      to: process.env.ADMIN_EMAIL,
+     to: commonContext.age || process.env.ADMIN_EMAIL,
       subject: 'تسجيل عضو جديد',
       context: adminContext
     });
