@@ -19,7 +19,6 @@ const MenuP = () => {
       try {
         setLoading(true);
         setError(null);
-        
         const response = await fetch('https://evolvetheapp.com/api/meals');
         const data = await response.json();
         
