@@ -99,21 +99,29 @@ const Register = () => {
   const validateForm = () => {
     const newErrors = {};
     
+    // Helper function للتحقق من القيم
+    const isEmpty = (value) => {
+      if (typeof value === 'string') {
+        return !value.trim();
+      }
+      return !value && value !== 0;
+    };
+    
     // Basic Information validation
-    if (!formData.fullName.trim()) newErrors.fullName = 'Full name is required';
-    if (!formData.email.trim()) newErrors.email = 'Email is required';
-    if (!formData.mobile.trim()) newErrors.mobile = 'Mobile is required';
-    if (!formData.age.trim()) newErrors.age = 'Age is required';
-    if (!formData.gender) newErrors.gender = 'Gender is required';
-    if (!formData.height.trim()) newErrors.height = 'Height is required';
-    if (!formData.weight.trim()) newErrors.weight = 'Weight is required';
-    if (!formData.occupation.trim()) newErrors.occupation = 'Occupation is required';
-    if (!formData.cityCountry.trim()) newErrors.cityCountry = 'City & Country is required';
+    if (isEmpty(formData.fullName)) newErrors.fullName = 'Full name is required';
+    if (isEmpty(formData.email)) newErrors.email = 'Email is required';
+    if (isEmpty(formData.mobile)) newErrors.mobile = 'Mobile is required';
+    if (isEmpty(formData.age)) newErrors.age = 'Age is required';
+    if (isEmpty(formData.gender)) newErrors.gender = 'Gender is required';
+    if (isEmpty(formData.height)) newErrors.height = 'Height is required';
+    if (isEmpty(formData.weight)) newErrors.weight = 'Weight is required';
+    if (isEmpty(formData.occupation)) newErrors.occupation = 'Occupation is required';
+    if (isEmpty(formData.cityCountry)) newErrors.cityCountry = 'City & Country is required';
     
     // Goals & Motivation validation
-    if (!formData.targetWeight.trim()) newErrors.targetWeight = 'Target weight is required';
-    if (!formData.targetDate.trim()) newErrors.targetDate = 'Target date is required';
-    if (!formData.motivationLevel) newErrors.motivationLevel = 'Motivation level is required';
+    if (isEmpty(formData.targetWeight)) newErrors.targetWeight = 'Target weight is required';
+    if (isEmpty(formData.targetDate)) newErrors.targetDate = 'Target date is required';
+    if (isEmpty(formData.motivationLevel)) newErrors.motivationLevel = 'Motivation level is required';
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -133,7 +141,7 @@ const Register = () => {
     setIsSubmitting(true);
     
     try {
-      const response = await fetch('https://www.evolvetheapp.com/api/register', {
+      const response = await fetch('http://localhost:5000/api/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

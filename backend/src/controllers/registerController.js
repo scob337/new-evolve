@@ -8,11 +8,15 @@ const { sendTemplateEmail } = require('../utils/emailService');
  */
 exports.submitRegistration = async (req, res) => {
   try {
+    console.log('البيانات المستلمة:', req.body);
+    
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log('أخطاء التحقق:', errors.array());
       return res.status(400).json({ 
         success: false, 
-        errors: errors.array() 
+        errors: errors.array(),
+        message: 'يرجى التحقق من البيانات المدخلة'
       });
     }
 
@@ -32,6 +36,53 @@ exports.submitRegistration = async (req, res) => {
     const firstName = nameParts[0] || '';
     const lastName = nameParts.slice(1).join(' ') || '';
 
+    // معالجة أسباب فقدان الوزن
+    let processedWeightLossReasons = '';
+    if (Array.isArray(weightLossReasons)) {
+      const reasons = weightLossReasons.map(reason => {
+        switch(reason) {
+          case 'health': return 'تحسين الصحة';
+          case 'confidence': return 'زيادة الثقة بالنفس';
+          case 'fitness': return 'تحسين اللياقة البدنية';
+          case 'appearance': return 'تحسين المظهر';
+          case 'medical': return 'أسباب طبية';
+          case 'other': return 'أخرى';
+          default: return reason;
+        }
+      });
+      processedWeightLossReasons = reasons.join(', ');
+    }
+
+    // معالجة الحالات الطبية
+    let processedMedicalConditions = '';
+    if (Array.isArray(medicalConditions)) {
+      const conditions = medicalConditions.map(condition => {
+        switch(condition) {
+          case 'diabetes': return 'السكري';
+          case 'hypertension': return 'ارتفاع ضغط الدم';
+          case 'heart_disease': return 'أمراض القلب';
+          case 'thyroid': return 'مشاكل الغدة الدرقية';
+          case 'arthritis': return 'التهاب المفاصل';
+          case 'none': return 'لا يوجد';
+          case 'other': return 'أخرى';
+          default: return condition;
+        }
+      });
+      processedMedicalConditions = conditions.join(', ');
+    }
+
+    // معالجة أنواع التمارين
+    let processedExerciseTypes = '';
+    if (Array.isArray(exerciseTypes)) {
+      processedExerciseTypes = exerciseTypes.join(', ');
+    }
+
+    // معالجة اهتمامات التدريب
+    let processedTrainingInterest = '';
+    if (Array.isArray(trainingInterest)) {
+      processedTrainingInterest = trainingInterest.join(', ');
+    }
+
     // Common context for both emails
     const commonContext = {
       fullName, 
@@ -39,51 +90,49 @@ exports.submitRegistration = async (req, res) => {
       lastName,
       email, 
       mobile,
-      phone: mobile, // إضافة phone كمرادف لـ mobile
+      phone: mobile, // للتوافق مع القوالب القديمة
       age, 
-      gender, 
+      gender: gender === 'male' ? 'ذكر' : gender === 'female' ? 'أنثى' : gender, 
       height, 
       weight,
-      currentWeight: weight, // إضافة currentWeight كمرادف لـ weight
-      occupation, 
-      cityCountry,
+      currentWeight: weight, // للتوافق مع القوالب القديمة
+      occupation: occupation || 'غير محدد', 
+      cityCountry: cityCountry || 'غير محدد',
+      city: cityCountry ? cityCountry.split(',')[0] : 'غير محدد',
+      country: cityCountry ? cityCountry.split(',')[1] || 'غير محدد' : 'غير محدد',
       targetWeight, 
-      targetDate, 
-      weightLossReasons: Array.isArray(weightLossReasons) ? weightLossReasons.join(', ') : '',
+      targetDate: targetDate || 'غير محدد',
+      goalDate: targetDate, // للتوافق مع القوالب القديمة
+      weightLossReasons: processedWeightLossReasons || 'غير محدد',
       motivationLevel,
-      primaryGoal: weightLossReasons ? (Array.isArray(weightLossReasons) ? weightLossReasons.join(', ') : weightLossReasons) : '', // إضافة primaryGoal
-      medicalConditions: Array.isArray(medicalConditions) ? medicalConditions.join(', ') : '',
-      medications, 
-      hasMedications, 
-      foodAllergies, 
-      hasFoodAllergies, 
-      doctorClearance,
-      mealsPerDay, 
-      eatingOutFrequency, 
-      sugaryDrinks, 
-      waterIntake, 
-      sleepHours, 
-      exerciseFrequency,
-      workoutFrequency: exerciseFrequency, // إضافة workoutFrequency كمرادف
-      exerciseTypes: Array.isArray(exerciseTypes) ? exerciseTypes.join(', ') : '',
-      mealPlanPreference, 
-      trainingInterest: Array.isArray(trainingInterest) ? trainingInterest.join(', ') : '',
-      dietaryRestrictions, 
-      hasDietaryRestrictions, 
-      coachGenderPreference,
-      communicationPreference: coachGenderPreference, // إضافة communicationPreference
-      supportLevel,
-      stressLevel, 
-      smokingStatus, 
-      alcoholConsumption, 
-      biggestChallenge, 
-      pastSuccesses, 
-      hasSupport,
-      emergencyContact: '', // إضافة حقول فارغة للحقول المفقودة
-      emergencyPhone: '',
-      year: currentYear
+      medicalConditions: processedMedicalConditions || 'لا يوجد',
+      medications: medications || 'لا يوجد',
+      hasMedications: hasMedications ? 'نعم' : 'لا',
+      foodAllergies: foodAllergies || 'لا يوجد',
+      hasFoodAllergies: hasFoodAllergies ? 'نعم' : 'لا',
+      doctorClearance: doctorClearance || 'غير محدد',
+      mealsPerDay: mealsPerDay || 'غير محدد',
+      eatingOutFrequency: eatingOutFrequency || 'غير محدد',
+      sugaryDrinks: sugaryDrinks || 'غير محدد',
+      waterIntake: waterIntake || 'غير محدد',
+      sleepHours: sleepHours || 'غير محدد',
+      exerciseFrequency: exerciseFrequency || 'غير محدد',
+      exerciseTypes: processedExerciseTypes || 'غير محدد',
+      mealPlanPreference: mealPlanPreference || 'غير محدد',
+      trainingInterest: processedTrainingInterest || 'غير محدد',
+      dietaryRestrictions: dietaryRestrictions || 'لا يوجد',
+      hasDietaryRestrictions: hasDietaryRestrictions ? 'نعم' : 'لا',
+      coachGenderPreference: coachGenderPreference || 'غير محدد',
+      supportLevel: supportLevel || 'غير محدد',
+      stressLevel: stressLevel || 'غير محدد',
+      smokingStatus: smokingStatus || 'غير محدد',
+      alcoholConsumption: alcoholConsumption || 'غير محدد',
+      biggestChallenge: biggestChallenge || 'غير محدد',
+      pastSuccesses: pastSuccesses || 'غير محدد',
+      hasSupport: hasSupport || 'غير محدد',
+      currentYear
     };
-    
+
     // Context for admin email (Arabic)
     const adminContext = {
       ...commonContext,
@@ -112,17 +161,14 @@ exports.submitRegistration = async (req, res) => {
       emergencyContactLabel: 'جهة اتصال الطوارئ',
       emergencyPhoneLabel: 'هاتف جهة اتصال الطوارئ',
       nextStepsText: 'يرجى التواصل مع العضو في أقرب وقت ممكن.',
-      callToActionUrl: '#', // إزالة رابط لوحة التحكم
-      callToActionText: '', // إزالة نص الزر
+      callToActionUrl: '#',
+      callToActionText: '',
       outroText: 'نتطلع إلى خدمة هذا العضو الجديد.',
       rightsText: 'جميع الحقوق محفوظة'
     };
     
-    // Context for user email (can be English based on user's preference)
-    const userLang = req.body.preferredLanguage || 'ar'; // Get user's preferred language if available
-    const userDir = userLang === 'ar' ? 'rtl' : 'ltr';
-    
-    const userContext = userLang === 'ar' ? {
+    // Context for user email (Arabic)
+    const userContext = {
       ...commonContext,
       dir: 'rtl',
       lang: 'ar',
@@ -149,67 +195,47 @@ exports.submitRegistration = async (req, res) => {
       emergencyContactLabel: 'جهة اتصال الطوارئ',
       emergencyPhoneLabel: 'هاتف جهة اتصال الطوارئ',
       nextStepsText: 'سيتواصل معك أحد مدربينا قريباً لمناقشة خطة اللياقة البدنية المخصصة لك.',
-      callToActionUrl: '#', // إزالة رابط لوحة التحكم
-      callToActionText: '', // إزالة نص الزر
+      callToActionUrl: '#',
+      callToActionText: '',
       outroText: 'نتطلع إلى رؤيتك قريباً!',
       rightsText: 'جميع الحقوق محفوظة'
-    } : {
-      // النسخة الإنجليزية مع نفس التعديلات
-      ...commonContext,
-      dir: 'ltr',
-      lang: 'en',
-      title: 'Registration Successful',
-      greeting: `Hello ${fullName}`,
-      intro: 'Thank you for registering with Evolve Fitness. We are excited to help you achieve your health and fitness goals.',
-      personalInfoTitle: 'Your Personal Information',
-      nameLabel: 'Name',
-      emailLabel: 'Email',
-      phoneLabel: 'Phone',
-      genderLabel: 'Gender',
-      goalsTitle: 'Your Health Goals',
-      primaryGoalLabel: 'Primary Goal',
-      currentWeightLabel: 'Current Weight',
-      targetWeightLabel: 'Target Weight',
-      heightLabel: 'Height',
-      lifestyleTitle: 'Lifestyle & Habits',
-      workoutFrequencyLabel: 'Workout Frequency',
-      sleepHoursLabel: 'Sleep Hours',
-      stressLevelLabel: 'Stress Level',
-      smokingStatusLabel: 'Smoking Status',
-      preferencesTitle: 'Preferences & Support',
-      communicationPreferenceLabel: 'Communication Preference',
-      emergencyContactLabel: 'Emergency Contact',
-      emergencyPhoneLabel: 'Emergency Phone',
-      nextStepsText: 'One of our trainers will contact you soon to discuss your personalized fitness plan.',
-      callToActionUrl: '#', // إزالة رابط لوحة التحكم
-      callToActionText: '', // إزالة نص الزر
-      outroText: 'We look forward to seeing you soon!',
-      rightsText: 'All Rights Reserved'
     };
     
     // Send admin email
-    await sendTemplateEmail({
-     to: commonContext.age || process.env.ADMIN_EMAIL,
-      subject: 'تسجيل عضو جديد',
-      context: adminContext
-    });
+    try {
+      await sendTemplateEmail({
+        to: process.env.ADMIN_EMAIL || 'F.alamoudi@evolvetheapp.com',
+        subject: 'تسجيل عضو جديد - Evolve Fitness',
+        context: adminContext
+      });
+      console.log('تم إرسال إيميل الإدارة بنجاح');
+    } catch (emailError) {
+      console.error('خطأ في إرسال إيميل الإدارة:', emailError);
+    }
     
     // Send user confirmation email
-    await sendTemplateEmail({
-      to: email, // استخدم email بدلاً من fullName
-      subject: 'Welcome to Evolve Fitness',
-      context: userContext
-    });
+    try {
+      await sendTemplateEmail({
+        to: email,
+        subject: 'مرحباً بك في Evolve Fitness',
+        context: userContext
+      });
+      console.log('تم إرسال إيميل التأكيد للمستخدم بنجاح');
+    } catch (emailError) {
+      console.error('خطأ في إرسال إيميل التأكيد:', emailError);
+    }
 
     res.status(200).json({
       success: true,
-      message: 'تم تسجيلك بنجاح'
+      message: 'تم تسجيلك بنجاح! سيتواصل معك فريقنا قريباً.'
     });
+    
   } catch (error) {
     console.error('خطأ في تسجيل المستخدم:', error);
     res.status(500).json({
       success: false,
-      message: 'حدث خطأ أثناء التسجيل. يرجى المحاولة مرة أخرى.'
+      message: 'حدث خطأ أثناء التسجيل. يرجى المحاولة مرة أخرى.',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
