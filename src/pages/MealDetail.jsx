@@ -24,7 +24,7 @@ const MealDetail = () => {
       setLoading(true);
       
       // محاولة تحميل البيانات من الـ API أولاً
-      const response = await fetch(`http://localhost:5000/api/meals/${id}`);
+      const response = await fetch(`https://evolvetheapp.com/api/meals/${id}`);
       
       if (response.ok) {
         const data = await response.json();

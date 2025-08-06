@@ -93,7 +93,7 @@ const Dashboard = () => {
       setLoading(true);
       setError(null);
       
-      const response = await fetch('http://localhost:5000/api/meals');
+      const response = await fetch('https://evolvetheapp.com/api/meals');
       const data = await response.json();
       
       if (data.success) {
@@ -147,7 +147,7 @@ const Dashboard = () => {
       // Note: For image upload, you'll need to handle file input
       // For now, we'll skip image upload in dashboard
       
-      const response = await fetch('http://localhost:5000/api/meals', {
+      const response = await fetch('https://evolvetheapp.com/api/meals', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('adminToken')}` // You'll need admin authentication
@@ -229,7 +229,7 @@ const Dashboard = () => {
       if (editingMeal.prepTime) formData.append('prepTime', editingMeal.prepTime);
       if (editingMeal.rating) formData.append('rating', parseFloat(editingMeal.rating));
       
-      const response = await fetch(`http://localhost:5000/api/meals/${editingMeal.id}`, {
+      const response = await fetch(`https://evolvetheapp.com/api/meals/${editingMeal.id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
@@ -259,7 +259,7 @@ const Dashboard = () => {
   const handleDeleteMeal = async (mealId) => {
     if (window.confirm(t('confirm_delete_meal') || 'هل أنت متأكد من حذف هذه الوجبة؟')) {
       try {
-        const response = await fetch(`http://localhost:5000/api/meals/${mealId}`, {
+        const response = await fetch(`https://evolvetheapp.com/api/meals/${mealId}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('adminToken')}`

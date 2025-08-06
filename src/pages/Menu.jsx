@@ -20,7 +20,7 @@ const MenuP = () => {
         setLoading(true);
         setError(null);
         
-        const response = await fetch('http://localhost:5000/api/meals');
+        const response = await fetch('https://evolvetheapp.com/api/meals');
         const data = await response.json();
         
         if (data.success) {
