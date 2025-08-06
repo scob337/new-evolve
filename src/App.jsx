@@ -12,7 +12,8 @@ import { Menu } from '@headlessui/react';
 import Contact from './pages/Contact';
 import Dashboard from './pages/Dashboard';
 import MealDetail from './pages/MealDetail';
-import Register from './pages/Register';
+import Register from './pages/Register';  
+import MenuP from './pages/Menu';
 
 function App() {
   const { i18n } = useTranslation();
@@ -53,7 +54,12 @@ function App() {
   };
 
   return (
-    <Router>
+    <Router
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true,
+      }}
+    >
       <div className="App">
         <Header 
           currentLanguage={currentLanguage} 
@@ -65,7 +71,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />
             <Route path="/services" element={<Services />} />
-            <Route path="/menu" element={<Menu />} />
+            <Route path="/menu" element={<MenuP />} />
             <Route path="/register" element={<Register />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/dashboard" element={<Dashboard />} />

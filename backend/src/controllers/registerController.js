@@ -8,15 +8,22 @@ const { sendTemplateEmail } = require('../utils/emailService');
  */
 exports.submitRegistration = async (req, res) => {
   try {
-    console.log('البيانات المستلمة:', req.body);
+    console.log('🔄 بدء معالجة طلب التسجيل');
+    console.log('📋 البيانات المستلمة:', {
+      fullName: req.body.fullName,
+      email: req.body.email,
+      mobile: req.body.mobile,
+      fieldsCount: Object.keys(req.body).length
+    });
     
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      console.log('أخطاء التحقق:', errors.array());
+      console.log('❌ أخطاء التحقق من صحة البيانات:', errors.array());
       return res.status(400).json({ 
         success: false, 
         errors: errors.array(),
-        message: 'يرجى التحقق من البيانات المدخلة'
+        message: 'يرجى التحقق من البيانات المدخلة',
+        errorType: 'VALIDATION_ERROR'
       });
     }
 
@@ -225,17 +232,128 @@ exports.submitRegistration = async (req, res) => {
       console.error('خطأ في إرسال إيميل التأكيد:', emailError);
     }
 
+    let emailResults = {
+      adminEmail: { success: false, error: null },
+      userEmail: { success: false, error: null }
+    };
+    
+    // Send admin email with better error handling
+    try {
+      console.log('📧 محاولة إرسال إيميل الإدارة...');
+      const adminResult = await sendTemplateEmail({
+        to: process.env.ADMIN_EMAIL || 'F.alamoudi@evolvetheapp.com',
+        subject: 'تسجيل عضو جديد - Evolve Fitness',
+        context: adminContext
+      });
+      
+      emailResults.adminEmail.success = true;
+      emailResults.adminEmail.messageId = adminResult.messageId;
+      console.log('✅ تم إرسال إيميل الإدارة بنجاح');
+    } catch (emailError) {
+      emailResults.adminEmail.error = {
+        message: emailError.message,
+        code: emailError.code,
+        statusCode: emailError.statusCode
+      };
+      
+      console.error('❌ خطأ في إرسال إيميل الإدارة:');
+      console.error('- الرسالة:', emailError.message);
+      console.error('- الكود:', emailError.code);
+      console.error('- كود الحالة:', emailError.statusCode);
+      
+      // لا نوقف العملية، نكمل مع إيميل المستخدم
+    }
+    
+    // Send user confirmation email with better error handling
+    try {
+      console.log('📧 محاولة إرسال إيميل التأكيد للمستخدم...');
+      const userResult = await sendTemplateEmail({
+        to: email,
+        subject: 'مرحباً بك في Evolve Fitness',
+        context: userContext
+      });
+      
+      emailResults.userEmail.success = true;
+      emailResults.userEmail.messageId = userResult.messageId;
+      console.log('✅ تم إرسال إيميل التأكيد للمستخدم بنجاح');
+    } catch (emailError) {
+      emailResults.userEmail.error = {
+        message: emailError.message,
+        code: emailError.code,
+        statusCode: emailError.statusCode
+      };
+      
+      console.error('❌ خطأ في إرسال إيميل التأكيد:');
+      console.error('- الرسالة:', emailError.message);
+      console.error('- الكود:', emailError.code);
+      console.error('- كود الحالة:', emailError.statusCode);
+    }
+
+    // تحديد حالة الاستجابة بناءً على نتائج الإيميل
+    const bothEmailsFailed = !emailResults.adminEmail.success && !emailResults.userEmail.success;
+    const partialSuccess = emailResults.adminEmail.success !== emailResults.userEmail.success;
+    
+    if (bothEmailsFailed) {
+      // فشل كلا الإيميلين
+      console.log('❌ فشل في إرسال كلا الإيميلين');
+      return res.status(500).json({
+        success: false,
+        message: 'تم حفظ بياناتك بنجاح، لكن حدث خطأ في إرسال رسائل التأكيد. سيتواصل معك فريقنا قريباً.',
+        errorType: 'EMAIL_DELIVERY_FAILED',
+        emailResults: emailResults,
+        registrationSaved: true
+      });
+    }
+    
+    if (partialSuccess) {
+      // نجح أحد الإيميلين فقط
+      console.log('⚠️ نجح إرسال أحد الإيميلين فقط');
+      return res.status(200).json({
+        success: true,
+        message: 'تم تسجيلك بنجاح! قد تواجه تأخيراً في استلام بعض رسائل التأكيد.',
+        warning: 'PARTIAL_EMAIL_SUCCESS',
+        emailResults: emailResults
+      });
+    }
+    
+    // نجح كلا الإيميلين
+    console.log('✅ تم التسجيل وإرسال جميع الإيميلات بنجاح');
     res.status(200).json({
       success: true,
-      message: 'تم تسجيلك بنجاح! سيتواصل معك فريقنا قريباً.'
+      message: 'تم تسجيلك بنجاح! سيتواصل معك فريقنا قريباً.',
+      emailResults: emailResults
     });
     
   } catch (error) {
-    console.error('خطأ في تسجيل المستخدم:', error);
-    res.status(500).json({
+    console.error('❌ خطأ عام في تسجيل المستخدم:');
+    console.error('- الرسالة:', error.message);
+    console.error('- المكدس:', error.stack);
+    
+    // تحديد نوع الخطأ لإرسال رسالة مناسبة
+    let errorMessage = 'حدث خطأ أثناء التسجيل. يرجى المحاولة مرة أخرى.';
+    let errorType = 'GENERAL_ERROR';
+    let statusCode = 500;
+    
+    if (error.code === 'MISSING_RECIPIENT' || error.code === 'MISSING_SUBJECT') {
+      errorMessage = 'خطأ في إعداد النظام. يرجى التواصل مع الدعم الفني.';
+      errorType = 'SYSTEM_CONFIGURATION_ERROR';
+    } else if (error.code === 'MISSING_API_KEY' || error.code === 'INVALID_API_KEY') {
+      errorMessage = 'خطأ في إعداد خدمة البريد الإلكتروني. يرجى التواصل مع الدعم الفني.';
+      errorType = 'EMAIL_SERVICE_ERROR';
+    } else if (error.code === 'NETWORK_ERROR') {
+      errorMessage = 'مشكلة في الاتصال بخدمة البريد الإلكتروني. يرجى المحاولة لاحقاً.';
+      errorType = 'NETWORK_ERROR';
+    }
+    
+    res.status(statusCode).json({
       success: false,
-      message: 'حدث خطأ أثناء التسجيل. يرجى المحاولة مرة أخرى.',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      message: errorMessage,
+      errorType: errorType,
+      error: process.env.NODE_ENV === 'development' ? {
+        message: error.message,
+        code: error.code,
+        stack: error.stack
+      } : undefined
     });
   }
 };

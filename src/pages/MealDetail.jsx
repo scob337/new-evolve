@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 const MealDetail = () => {
-  const { id } = useParams();
+  const { id } = useParams(); // استخراج id من URL
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const [meal, setMeal] = useState(null);
@@ -21,7 +21,21 @@ const MealDetail = () => {
 
   const loadMealDetail = async () => {
     try {
-      // Try to load from local storage first
+      setLoading(true);
+      
+      // محاولة تحميل البيانات من الـ API أولاً
+      const response = await fetch(`http://localhost:5000/api/meals/${id}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log(data)
+        if (data.success && data.data) {
+          setMeal(data.data?.meal);
+          return;
+        }
+      }
+      
+      // في حالة فشل الـ API، استخدم البيانات المحلية
       const savedMeals = localStorage.getItem('meals');
       let mealsData = [];
       
@@ -29,120 +43,14 @@ const MealDetail = () => {
         mealsData = JSON.parse(savedMeals);
       } else {
         // Fallback to sample data
-        mealsData = [
-          {
-            id: 1,
-            name: 'Protein Power Salad',
-            name_ar: 'سلطة البروتين القوية',
-            description: 'Fresh mixed greens with grilled chicken breast, quinoa, avocado, cherry tomatoes, and our signature protein dressing',
-            description_ar: 'خضروات ورقية طازجة مع صدر دجاج مشوي وكينوا وأفوكادو وطماطم كرزية وصلصة البروتين المميزة',
-            price: 25,
-            category: 'salads',
-            image: '/images/2.jpg',
-            calories: 420,
-            protein: 45,
-            carbs: 18,
-            fat: 12,
-            fiber: 8,
-            sugar: 6,
-            sodium: 380,
-            ingredients: ['Grilled chicken breast', 'Mixed greens', 'Quinoa', 'Avocado', 'Cherry tomatoes', 'Cucumber', 'Protein dressing'],
-            ingredients_ar: ['صدر دجاج مشوي', 'خضروات ورقية مختلطة', 'كينوا', 'أفوكادو', 'طماطم كرزية', 'خيار', 'صلصة البروتين'],
-            allergens: ['None'],
-            allergens_ar: ['لا يوجد'],
-            prep_time: '15 minutes',
-            prep_time_ar: '15 دقيقة',
-            difficulty: 'Easy',
-            difficulty_ar: 'سهل'
-          },
-          {
-            id: 2,
-            name: 'Grilled Chicken Supreme',
-            name_ar: 'دجاج مشوي سوبريم',
-            description: 'Perfectly grilled chicken breast with roasted vegetables, brown rice, and our special herb sauce',
-            description_ar: 'صدر دجاج مشوي بالكمال مع خضروات محمصة وأرز بني وصلصة الأعشاب الخاصة',
-            price: 35,
-            category: 'main',
-            image: '/images/2.jpg',
-            calories: 520,
-            protein: 55,
-            carbs: 35,
-            fat: 15,
-            fiber: 6,
-            sugar: 8,
-            sodium: 420,
-            ingredients: ['Grilled chicken breast', 'Brown rice', 'Broccoli', 'Carrots', 'Bell peppers', 'Herb sauce'],
-            ingredients_ar: ['صدر دجاج مشوي', 'أرز بني', 'بروكلي', 'جزر', 'فلفل ملون', 'صلصة الأعشاب'],
-            allergens: ['None'],
-            allergens_ar: ['لا يوجد'],
-            prep_time: '25 minutes',
-            prep_time_ar: '25 دقيقة',
-            difficulty: 'Medium',
-            difficulty_ar: 'متوسط'
-          },
-          {
-            id: 3,
-            name: 'Power Protein Smoothie',
-            name_ar: 'سموثي البروتين القوي',
-            description: 'Delicious protein smoothie with fresh fruits, oats, and premium protein powder',
-            description_ar: 'سموثي بروتين لذيذ مع فواكه طازجة وشوفان وبودرة بروتين فاخرة',
-            price: 15,
-            category: 'drinks',
-            image: '/images/2.jpg',
-            calories: 280,
-            protein: 25,
-            carbs: 28,
-            fat: 6,
-            fiber: 4,
-            sugar: 18,
-            sodium: 120,
-            ingredients: ['Protein powder', 'Banana', 'Berries', 'Oats', 'Almond milk', 'Honey'],
-            ingredients_ar: ['بودرة البروتين', 'موز', 'توت', 'شوفان', 'حليب اللوز', 'عسل'],
-            allergens: ['Tree nuts'],
-            allergens_ar: ['المكسرات'],
-            prep_time: '5 minutes',
-            prep_time_ar: '5 دقائق',
-            difficulty: 'Easy',
-            difficulty_ar: 'سهل',
-            tags: ['High Protein', 'Low Carb', 'Gluten Free'],
-            tags_ar: ['عالي البروتين', 'قليل الكربوهيدرات', 'خالي من الجلوتين']
-          },
-          {
-            id: 4,
-            name: 'Quinoa Power Bowl',
-            name_ar: 'وعاء الكينوا القوي',
-            description: 'Nutritious quinoa with roasted vegetables, chickpeas, avocado, and tahini dressing',
-            description_ar: 'كينوا مغذية مع خضروات محمصة وحمص وأفوكادو وصلصة الطحينة',
-            price: 38,
-            category: 'bowls',
-            image: '/images/meal2.jpg',
-            calories: 420,
-            protein: 18,
-            carbs: 45,
-            fat: 12,
-            fiber: 8,
-            sugar: 6,
-            sodium: 380,
-            ingredients: ['Quinoa', 'Roasted vegetables', 'Chickpeas', 'Avocado', 'Tahini dressing'],
-            ingredients_ar: ['كينوا', 'خضروات محمصة', 'حمص', 'أفوكادو', 'صلصة طحينة'],
-            allergens: ['Sesame'],
-            allergens_ar: ['سمسم'],
-            preparation_time: '20 minutes',
-            preparation_time_ar: '20 دقيقة',
-            difficulty: 'Medium',
-            difficulty_ar: 'متوسط',
-            tags: ['Vegan', 'High Fiber', 'Protein Rich'],
-            tags_ar: ['نباتي', 'عالي الألياف', 'غني بالبروتين']
-          }
-        ];
+        mealsData = [/* بيانات تجريبية */];
       }
       
       const foundMeal = mealsData.find(m => m.id === parseInt(id));
       if (foundMeal) {
         setMeal(foundMeal);
-
       } else {
-        navigate('/menu');
+        navigate('/menu'); // إعادة توجيه إذا لم توجد الوجبة
       }
     } catch (error) {
       console.error('Error loading meal detail:', error);
@@ -206,9 +114,58 @@ const MealDetail = () => {
 
   const currentName = i18n.language === 'ar' ? meal.name_ar : meal.name;
   const currentDescription = i18n.language === 'ar' ? meal.description_ar : meal.description;
-  const currentIngredients = i18n.language === 'ar' ? meal.ingredients_ar : meal.ingredients;
-  const currentAllergens = i18n.language === 'ar' ? meal.allergens_ar : meal.allergens;
-  const currentTags = i18n.language === 'ar' ? meal.tags_ar : meal.tags;
+
+  // إصلاح معالجة المكونات
+  const getIngredients = () => {
+    // إذا كانت البيانات من API وتحتوي على ingredients كـ JSON string
+    if (meal.ingredients && typeof meal.ingredients === 'string') {
+      try {
+        const parsed = JSON.parse(meal.ingredients);
+        return i18n.language === 'ar' ? parsed.ar : parsed.en;
+      } catch (e) {
+        console.error('Error parsing ingredients:', e);
+        return [];
+      }
+    }
+    
+    // إذا كانت البيانات تحتوي على حقول منفصلة
+    if (meal.ingredients_ar || meal.ingredients) {
+      return i18n.language === 'ar' ? meal.ingredients_ar : meal.ingredients;
+    }
+    
+    // إذا لم توجد مكونات، إرجاع مصفوفة فارغة
+    return [];
+  };
+  
+  const currentIngredients = getIngredients();
+  
+  // تطبيق نفس المنطق على باقي الحقول
+  const getAllergens = () => {
+    if (meal.allergens && typeof meal.allergens === 'string') {
+      try {
+        const parsed = JSON.parse(meal.allergens);
+        return i18n.language === 'ar' ? parsed.ar : parsed.en;
+      } catch (e) {
+        return [];
+      }
+    }
+    return i18n.language === 'ar' ? meal.allergens_ar : meal.allergens || [];
+  };
+  
+  const getTags = () => {
+    if (meal.tags && typeof meal.tags === 'string') {
+      try {
+        const parsed = JSON.parse(meal.tags);
+        return i18n.language === 'ar' ? parsed.ar : parsed.en;
+      } catch (e) {
+        return [];
+      }
+    }
+    return i18n.language === 'ar' ? meal.tags_ar : meal.tags || [];
+  };
+  
+  const currentAllergens = getAllergens();
+  const currentTags = getTags();
   const currentPreparationTime = i18n.language === 'ar' ? meal.preparation_time_ar : meal.preparation_time;
   const currentDifficulty = i18n.language === 'ar' ? meal.difficulty_ar : meal.difficulty;
 
@@ -240,7 +197,7 @@ const MealDetail = () => {
                 </svg>
               </li>
               <li>
-                <span className="text-gray-900 font-medium">{currentName}</span>
+                <span className="text-gray-900 font-medium">{meal.nameEn}</span>
               </li>
             </ol>
           </nav>
@@ -331,12 +288,16 @@ const MealDetail = () => {
             <div className="bg-white rounded-lg p-6 shadow-lg">
               <h3 className="text-xl font-bold text-gray-900 mb-4">{t('ingredients')}</h3>
               <ul className="space-y-2">
-                {currentIngredients && currentIngredients.map((ingredient, index) => (
-                  <li key={index} className="flex items-center space-x-2">
-                    <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
-                    <span className="text-gray-700">{ingredient}</span>
-                  </li>
-                ))}
+                {currentIngredients && Array.isArray(currentIngredients) && currentIngredients.length > 0 ? (
+                  currentIngredients.map((ingredient, index) => (
+                    <li key={index} className="flex items-center space-x-2">
+                      <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
+                      <span className="text-gray-700">{ingredient}</span>
+                    </li>
+                  ))
+                ) : (
+                  <li className="text-gray-500">{t('no_ingredients_available')}</li>
+                )}
               </ul>
             </div>
 
@@ -371,50 +332,8 @@ const MealDetail = () => {
               </div>
             </div>
 
-            {/* Order Section */}
-            <div className="bg-white rounded-lg p-6 shadow-lg">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">{t('order_options')}</h3>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('quantity')}
-                  </label>
-                  <div className="flex items-center space-x-3">
-                    <button
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors duration-300"
-                    >
-                      -
-                    </button>
-                    <span className="text-xl font-bold w-12 text-center">{quantity}</span>
-                    <button
-                      onClick={() => setQuantity(quantity + 1)}
-                      className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-colors duration-300"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-                
-                <div className="pt-4 border-t">
-                  <div className="flex justify-between items-center mb-4">
-                    <span className="text-lg font-medium">{t('total')}:</span>
-                    <span className="text-2xl font-bold text-orange-500">
-                      ${(meal.price * quantity).toFixed(2)}
-                    </span>
-                  </div>
-                  
-                  <button
-                    onClick={handleAddToCart}
-                    className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-3 rounded-lg font-semibold text-lg hover:from-orange-600 hover:to-red-600 transform hover:scale-105 transition-all duration-300 shadow-lg"
-                  >
-                    {t('add_to_cart')}
-                  </button>
-                </div>
-              </div>
+
             </div>
-          </div>
         </div>
       </div>
 

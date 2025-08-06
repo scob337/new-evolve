@@ -11,9 +11,8 @@ const Header = ({ currentLanguage, toggleLanguage }) => {
 
   const navigation = [
     { name: t('home'), href: '/' },
-    { name: t('menu_title'), href: '/menu' },
-    { name: t('register_nav'), href: '/register' },
-    { name: t('dashboard'), href: '/dashboard' },
+    { name: t('menu'), href: '/menu' },
+    { name: t('register'), href: '/register' },
   ];
 
   const isActive = (path) => {

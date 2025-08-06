@@ -1,24 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import jsPDF from 'jspdf';
+import QRCode from 'qrcode';
 
 const Dashboard = () => {
   const { t } = useTranslation();
   const [meals, setMeals] = useState([]);
-  const [stats, setStats] = useState({
-    totalMeals: 0,
-    totalUsers: 0,
-    totalOrders: 0,
-    revenue: 0
-  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showAddMeal, setShowAddMeal] = useState(false);
+  const [showEditMeal, setShowEditMeal] = useState(false);
+  const [editingMeal, setEditingMeal] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [showAddMeal, setShowAddMeal] = useState(false);
+  const [stats, setStats] = useState({
+    totalMeals: 0,
+    totalUsers: 1250,
+    totalOrders: 3420,
+    revenue: 45680
+  });
   const [newMeal, setNewMeal] = useState({
-    name: '',
-    name_ar: '',
-    description: '',
-    description_ar: '',
+    nameEn: '',
+    nameAr: '',
+    descriptionEn: '',
+    descriptionAr: '',
+    usageEn: '',
+    usageAr: '',
     price: '',
     category: '',
     image: '',
@@ -26,138 +34,283 @@ const Dashboard = () => {
     protein: '',
     carbs: '',
     fat: '',
-    ingredients: [],
-    allergens: []
+    prepTime: '',
+    rating: '4.5'
   });
 
-  // Load meals data
+   const handlePrintQR = async (meal) => {
+    try {
+      // إنشاء URL للوجبة
+      const mealUrl = `${window.location.origin}/meal/${meal.id}`;
+      
+      // إنشاء QR code
+      const qrCodeDataUrl = await QRCode.toDataURL(mealUrl, {
+        width: 200,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      });
+      
+      // إنشاء PDF
+      const pdf = new jsPDF();
+      
+      // إضافة عنوان
+      pdf.setFontSize(20);
+      pdf.text('Evolve QR Code', 20, 30);
+      
+      // إضافة اسم الوجبة
+      pdf.setFontSize(16);
+      const mealName = meal.nameEn || meal.name ;
+      pdf.text(` ${meal.nameEn}`, 20, 50);
+      
+      // إضافة QR code
+      pdf.addImage(qrCodeDataUrl, 'PNG', 20, 60, 50, 50);
+      
+      // إضافة URL
+      pdf.setFontSize(10);
+      pdf.text(`URL: ${mealUrl}`, 20, 120);
+      
+
+      // طباعة PDF
+      pdf.autoPrint();
+      window.open(pdf.output('bloburl'), '_blank');
+      
+    } catch (error) {
+      console.error('Error generating QR code:', error);
+      alert('حدث خطأ أثناء إنشاء رمز QR');
+    }
+  };
+
+  // Load meals from API on component mount
   useEffect(() => {
-    loadMeals();
-    loadStats();
+    loadMealsFromAPI();
   }, []);
 
-  const loadMeals = async () => {
+  const loadMealsFromAPI = async () => {
     try {
-      // Try to load from local storage first
-      const savedMeals = localStorage.getItem('meals');
-      if (savedMeals) {
-        const mealsData = JSON.parse(savedMeals);
-        setMeals(mealsData);
-        return;
+      setLoading(true);
+      setError(null);
+      
+      const response = await fetch('http://localhost:5000/api/meals');
+      const data = await response.json();
+      
+      if (data.success) {
+        setMeals(data.data.meals);
+        setStats(prev => ({
+          ...prev,
+          totalMeals: data.data.meals.length
+        }));
+      } else {
+        throw new Error(data.message || 'فشل في تحميل الوجبات');
       }
-
-      // Fallback to sample data
-      const sampleMeals = [
-        {
-          id: 1,
-          name: 'Grilled Chicken Salad',
-          name_ar: 'سلطة الدجاج المشوي',
-          description: 'Fresh mixed greens with grilled chicken breast',
-          description_ar: 'خضروات ورقية طازجة مع صدر دجاج مشوي',
-          price: 45,
-          category: 'salads',
-          image: '/images/meal1.jpg',
-          calories: 320,
-          protein: 35,
-          carbs: 12,
-          fat: 8,
-          ingredients: ['chicken', 'lettuce', 'tomatoes', 'cucumber'],
-          allergens: []
-        },
-        {
-          id: 2,
-          name: 'Quinoa Power Bowl',
-          name_ar: 'وعاء الكينوا القوي',
-          description: 'Nutritious quinoa with vegetables and protein',
-          description_ar: 'كينوا مغذية مع الخضروات والبروتين',
-          price: 38,
-          category: 'bowls',
-          image: '/images/meal2.jpg',
-          calories: 420,
-          protein: 18,
-          carbs: 45,
-          fat: 12,
-          ingredients: ['quinoa', 'vegetables', 'chickpeas'],
-          allergens: []
-        }
-      ];
-      setMeals(sampleMeals);
-      localStorage.setItem('meals', JSON.stringify(sampleMeals));
     } catch (error) {
       console.error('Error loading meals:', error);
+      setError(error.message);
+      // Fallback to localStorage if API fails
+      const savedMeals = localStorage.getItem('meals');
+      if (savedMeals) {
+        const localMeals = JSON.parse(savedMeals);
+        setMeals(localMeals);
+        setStats(prev => ({
+          ...prev,
+          totalMeals: localMeals.length
+        }));
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
-  const loadStats = () => {
-    // Simulate loading stats
-    setStats({
-      totalMeals: 24,
-      totalUsers: 156,
-      totalOrders: 89,
-      revenue: 12450
-    });
-  };
-
-  const handleAddMeal = (e) => {
+  const handleAddMeal = async (e) => {
     e.preventDefault();
     
-    const mealData = {
-      ...newMeal,
-      id: Date.now(),
-      price: parseFloat(newMeal.price),
-      calories: parseInt(newMeal.calories),
-      protein: parseFloat(newMeal.protein),
-      carbs: parseFloat(newMeal.carbs),
-      fat: parseFloat(newMeal.fat),
-      ingredients: newMeal.ingredients.filter(ing => ing.trim() !== ''),
-      allergens: newMeal.allergens.filter(all => all.trim() !== '')
-    };
-
-    const updatedMeals = [...meals, mealData];
-    setMeals(updatedMeals);
-    localStorage.setItem('meals', JSON.stringify(updatedMeals));
-    
-    // Reset form
-    setNewMeal({
-      name: '',
-      name_ar: '',
-      description: '',
-      description_ar: '',
-      price: '',
-      category: '',
-      image: '',
-      calories: '',
-      protein: '',
-      carbs: '',
-      fat: '',
-      ingredients: [],
-      allergens: []
-    });
-    setShowAddMeal(false);
-    
-    // Update stats
-    setStats(prev => ({
-      ...prev,
-      totalMeals: prev.totalMeals + 1
-    }));
+    try {
+      const formData = new FormData();
+      
+      // Add all required fields
+      formData.append('nameEn', newMeal.nameEn);
+      formData.append('nameAr', newMeal.nameAr);
+      formData.append('descriptionEn', newMeal.descriptionEn);
+      formData.append('descriptionAr', newMeal.descriptionAr);
+      formData.append('usageEn', newMeal.usageEn);
+      formData.append('usageAr', newMeal.usageAr);
+      formData.append('price', parseFloat(newMeal.price));
+      formData.append('category', newMeal.category);
+      
+      // Add optional fields
+      if (newMeal.calories) formData.append('calories', parseInt(newMeal.calories));
+      if (newMeal.prepTime) formData.append('prepTime', newMeal.prepTime);
+      if (newMeal.rating) formData.append('rating', parseFloat(newMeal.rating));
+      
+      // Note: For image upload, you'll need to handle file input
+      // For now, we'll skip image upload in dashboard
+      
+      const response = await fetch('http://localhost:5000/api/meals', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}` // You'll need admin authentication
+        },
+        body: formData
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        // Reload meals from API
+        await loadMealsFromAPI();
+        
+        // Reset form
+        setNewMeal({
+          nameEn: '',
+          nameAr: '',
+          descriptionEn: '',
+          descriptionAr: '',
+          usageEn: '',
+          usageAr: '',
+          price: '',
+          category: '',
+          image: '',
+          calories: '',
+          protein: '',
+          carbs: '',
+          fat: '',
+          prepTime: '',
+          rating: '4.5'
+        });
+        setShowAddMeal(false);
+        
+        alert(t('meal_added_successfully') || 'تم إضافة الوجبة بنجاح');
+      } else {
+        throw new Error(data.message || 'فشل في إضافة الوجبة');
+      }
+    } catch (error) {
+      console.error('Error adding meal:', error);
+      alert(t('error_adding_meal') || 'حدث خطأ أثناء إضافة الوجبة');
+    }
   };
 
-  const handleDeleteMeal = (mealId) => {
-    if (window.confirm(t('confirm_delete_meal'))) {
-      const updatedMeals = meals.filter(meal => meal.id !== mealId);
-      setMeals(updatedMeals);
-      localStorage.setItem('meals', JSON.stringify(updatedMeals));
+  const handleEditMeal = (meal) => {
+    setEditingMeal({
+      id: meal.id,
+      nameEn: meal.nameEn || (meal.name && meal.name.en) || '',
+      nameAr: meal.nameAr || (meal.name && meal.name.ar) || '',
+      descriptionEn: meal.descriptionEn || (meal.description && meal.description.en) || '',
+      descriptionAr: meal.descriptionAr || (meal.description && meal.description.ar) || '',
+      usageEn: meal.usageEn || (meal.usage && meal.usage.en) || '',
+      usageAr: meal.usageAr || (meal.usage && meal.usage.ar) || '',
+      price: meal.price || '',
+      category: meal.category || '',
+      calories: meal.calories || '',
+      prepTime: meal.prepTime || '',
+      rating: meal.rating || '4.5'
+    });
+    setShowEditMeal(true);
+  };
+
+  const handleUpdateMeal = async (e) => {
+    e.preventDefault();
+    
+    try {
+      const formData = new FormData();
       
-      setStats(prev => ({
-        ...prev,
-        totalMeals: prev.totalMeals - 1
-      }));
+      // Add all fields
+      formData.append('nameEn', editingMeal.nameEn);
+      formData.append('nameAr', editingMeal.nameAr);
+      formData.append('descriptionEn', editingMeal.descriptionEn);
+      formData.append('descriptionAr', editingMeal.descriptionAr);
+      formData.append('usageEn', editingMeal.usageEn);
+      formData.append('usageAr', editingMeal.usageAr);
+      formData.append('price', parseFloat(editingMeal.price));
+      formData.append('category', editingMeal.category);
+      
+      if (editingMeal.calories) formData.append('calories', parseInt(editingMeal.calories));
+      if (editingMeal.prepTime) formData.append('prepTime', editingMeal.prepTime);
+      if (editingMeal.rating) formData.append('rating', parseFloat(editingMeal.rating));
+      
+      const response = await fetch(`http://localhost:5000/api/meals/${editingMeal.id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+        },
+        body: formData
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        // Reload meals from API
+        await loadMealsFromAPI();
+        
+        setShowEditMeal(false);
+        setEditingMeal(null);
+        
+        alert(t('meal_updated_successfully') || 'تم تحديث الوجبة بنجاح');
+      } else {
+        throw new Error(data.message || 'فشل في تحديث الوجبة');
+      }
+    } catch (error) {
+      console.error('Error updating meal:', error);
+      alert(t('error_updating_meal') || 'حدث خطأ أثناء تحديث الوجبة');
     }
+  };
+
+  const handleDeleteMeal = async (mealId) => {
+    if (window.confirm(t('confirm_delete_meal') || 'هل أنت متأكد من حذف هذه الوجبة؟')) {
+      try {
+        const response = await fetch(`http://localhost:5000/api/meals/${mealId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+          }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          // Reload meals from API
+          await loadMealsFromAPI();
+          
+          alert(t('meal_deleted_successfully') || 'تم حذف الوجبة بنجاح');
+        } else {
+          throw new Error(data.message || 'فشل في حذف الوجبة');
+        }
+      } catch (error) {
+        console.error('Error deleting meal:', error);
+        alert(t('error_deleting_meal') || 'حدث خطأ أثناء حذف الوجبة');
+      }
+    }
+  };
+
+  // Helper function to get meal name based on language
+  const getMealName = (meal) => {
+    if (meal.nameAr && meal.nameEn) {
+      return t('language') === 'ar' ? meal.nameAr : meal.nameEn;
+    }
+    if (meal.name && typeof meal.name === 'object') {
+      return meal.name[t('language')] || meal.name.en || meal.name.ar;
+    }
+    return meal.name || meal.nameEn || meal.nameAr || 'اسم غير متوفر';
+  };
+
+  // Helper function to get meal description
+  const getMealDescription = (meal) => {
+    if (meal.descriptionAr && meal.descriptionEn) {
+      return t('language') === 'ar' ? meal.descriptionAr : meal.descriptionEn;
+    }
+    if (meal.description && typeof meal.description === 'object') {
+      return meal.description[t('language')] || meal.description.en || meal.description.ar;
+    }
+    return meal.description || meal.descriptionEn || meal.descriptionAr || 'وصف غير متوفر';
   };
 
   const filteredMeals = meals.filter(meal => {
-    const matchesSearch = meal.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         meal.name_ar.includes(searchTerm);
+    const mealName = getMealName(meal).toLowerCase();
+    const mealDescription = getMealDescription(meal).toLowerCase();
+    const searchLower = searchTerm.toLowerCase();
+    
+    const matchesSearch = mealName.includes(searchLower) || mealDescription.includes(searchLower);
     const matchesCategory = selectedCategory === 'all' || meal.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
@@ -286,7 +439,7 @@ const Dashboard = () => {
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
               {t('meals_management')}
             </h2>
-            
+             
             {/* Search and Filter */}
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1">
@@ -344,10 +497,10 @@ const Dashboard = () => {
                         <div className="flex-shrink-0 h-12 w-12">
                           <img
                             className="h-12 w-12 rounded-lg object-cover"
-                            src={meal.image || '/images/placeholder-meal.jpg'}
-                            alt={meal.name}
+                            src={meal.image || '/images/default-meal.jpg'}
+                            alt={meal.nameEn}
                             onError={(e) => {
-                              e.target.src = '/images/placeholder-meal.jpg';
+                              e.target.src = '/images/default-meal.jpg';
                             }}
                           />
                         </div>
@@ -355,14 +508,15 @@ const Dashboard = () => {
                           <div className="text-sm font-medium text-gray-900">
                             {meal.name}
                           </div>
-                          <div className="text-sm text-gray-500">
-                            {meal.name_ar}
-                          </div>
+                            <div className="text-sm text-gray-500">
+                              {meal.nameEn}
+                            </div>
+                          
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
                         {t(meal.category)}
                       </span>
                     </td>
@@ -370,20 +524,30 @@ const Dashboard = () => {
                       ${meal.price}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {meal.calories} {t('cal')}
+                      {meal.calories} cal
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-2">
-                        <button className="text-blue-600 hover:text-blue-900">
-                          {t('edit')}
-                        </button>
-                        <button
-                          onClick={() => handleDeleteMeal(meal.id)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          {t('delete')}
-                        </button>
-                      </div>
+
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <button
+                        onClick={() => handleEditMeal(meal)}
+                        className="text-blue-600 hover:text-blue-900 mr-4"
+                      >
+                        {t('edit')}
+                      </button>
+
+                      <button
+                        onClick={() => handleDeleteMeal(meal.id)}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        {t('delete')}
+                      </button>
+                                            <button
+                        onClick={() => handlePrintQR(meal)}
+                        className="text-green-600 hover:text-green-900 ml-4"
+                        title="طباعة QR Code"
+                      >
+                       QR
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -411,7 +575,7 @@ const Dashboard = () => {
                   </svg>
                 </button>
               </div>
-              
+
               <form onSubmit={handleAddMeal} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
@@ -560,6 +724,34 @@ const Dashboard = () => {
                   </div>
                 </div>
                 
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t('ingredients')}
+                    </label>
+                    <textarea
+                      value={newMeal.ingredients}
+                      onChange={(e) => setNewMeal({...newMeal, ingredients: e.target.value})}
+                      rows={3}
+                      placeholder={t('ingredients_placeholder')}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t('allergens')}
+                    </label>
+                    <textarea
+                      value={newMeal.allergens}
+                      onChange={(e) => setNewMeal({...newMeal, allergens: e.target.value})}
+                      rows={3}
+                      placeholder={t('allergens_placeholder')}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    />
+                  </div>
+                </div>
+                
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     {t('image_url')}
@@ -586,6 +778,239 @@ const Dashboard = () => {
                     className="px-6 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 transition-all duration-300"
                   >
                     {t('add_meal')}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Meal Modal */}
+      {showEditMeal && editingMeal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-2xl font-bold text-gray-900">
+                  {t('edit_meal')}
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowEditMeal(false);
+                    setEditingMeal(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              </div>
+
+              <form onSubmit={handleUpdateMeal} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t('meal_name_en')}
+                    </label>
+                    <input
+                      type="text"
+                      value={editingMeal.name}
+                      onChange={(e) => setEditingMeal({...editingMeal, name: e.target.value})}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t('meal_name_ar')}
+                    </label>
+                    <input
+                      type="text"
+                      value={editingMeal.name_ar || ''}
+                      onChange={(e) => setEditingMeal({...editingMeal, name_ar: e.target.value})}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t('description_en')}
+                    </label>
+                    <textarea
+                      value={editingMeal.description}
+                      onChange={(e) => setEditingMeal({...editingMeal, description: e.target.value})}
+                      rows={3}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t('description_ar')}
+                    </label>
+                    <textarea
+                      value={editingMeal.description_ar || ''}
+                      onChange={(e) => setEditingMeal({...editingMeal, description_ar: e.target.value})}
+                      rows={3}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t('price')}
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={editingMeal.price}
+                      onChange={(e) => setEditingMeal({...editingMeal, price: e.target.value})}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t('category')}
+                    </label>
+                    <select
+                      value={editingMeal.category}
+                      onChange={(e) => setEditingMeal({...editingMeal, category: e.target.value})}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      required
+                    >
+                      <option value="">{t('select_category')}</option>
+                      <option value="salads">{t('salads')}</option>
+                      <option value="bowls">{t('bowls')}</option>
+                      <option value="proteins">{t('proteins')}</option>
+                      <option value="desserts">{t('desserts')}</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t('calories')}
+                    </label>
+                    <input
+                      type="number"
+                      value={editingMeal.calories}
+                      onChange={(e) => setEditingMeal({...editingMeal, calories: e.target.value})}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t('protein')} (g)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={editingMeal.protein}
+                      onChange={(e) => setEditingMeal({...editingMeal, protein: e.target.value})}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t('carbs')} (g)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={editingMeal.carbs}
+                      onChange={(e) => setEditingMeal({...editingMeal, carbs: e.target.value})}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t('fat')} (g)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={editingMeal.fat}
+                      onChange={(e) => setEditingMeal({...editingMeal, fat: e.target.value})}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t('ingredients')}
+                    </label>
+                    <textarea
+                      value={editingMeal.ingredients || ''}
+                      onChange={(e) => setEditingMeal({...editingMeal, ingredients: e.target.value})}
+                      rows={3}
+                      placeholder={t('ingredients_placeholder')}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t('allergens')}
+                    </label>
+                    <textarea
+                      value={editingMeal.allergens || ''}
+                      onChange={(e) => setEditingMeal({...editingMeal, allergens: e.target.value})}
+                      rows={3}
+                      placeholder={t('allergens_placeholder')}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('image_url')}
+                  </label>
+                  <input
+                    type="url"
+                    value={editingMeal.image || ''}
+                    onChange={(e) => setEditingMeal({...editingMeal, image: e.target.value})}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    placeholder="https://example.com/image.jpg"
+                  />
+                </div>
+                
+                <div className="flex justify-end space-x-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowEditMeal(false);
+                      setEditingMeal(null);
+                    }}
+                    className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-300"
+                  >
+                    {t('cancel')}
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-6 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-300"
+                  >
+                    {t('update_meal')}
                   </button>
                 </div>
               </form>

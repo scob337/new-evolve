@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("admin")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Meal {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  nameAr        String
+  nameEn        String
+  descriptionAr String
+  descriptionEn String
+  price         Float
+  calories      Int?
+  protein       Int?
+  carbs         Int?
+  fat           Int?
+  category      String
+  image         String?
+  ingredients   String?  // JSON string
+  prepTime      String?
+  difficulty    String?
+  isActive      Boolean  @default(true)
+  rating        Float?   @default(4.5)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("meals")
+}

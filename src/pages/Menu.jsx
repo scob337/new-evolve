@@ -1,148 +1,87 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
-const Menu = () => {
+const MenuP = () => {
   const { t, i18n } = useTranslation();
   const [meals, setMeals] = useState([]);
   const [filteredMeals, setFilteredMeals] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [sortBy, setSortBy] = useState('name');
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState('grid');
+  const [error, setError] = useState(null);
 
-  // Load meals data
+  // Load meals from API
   useEffect(() => {
     const loadMeals = async () => {
       try {
-        // Try to load Arabic meals first, then fallback to English
-        let mealsData = [];
-        try {
-          const response = await fetch('/meals-ar.json');
-          if (response.ok) {
-            mealsData = await response.json();
-          }
-        } catch (error) {
-          console.log('Arabic meals not found, loading default meals');
-        }
+        setLoading(true);
+        setError(null);
         
-        // If no Arabic meals or empty, load default meals
-        if (mealsData.length === 0) {
-          try {
-            const response = await fetch('/meals.json');
-            if (response.ok) {
-              mealsData = await response.json();
-            }
-          } catch (error) {
-            console.log('Default meals not found, using sample data');
-            // Sample data if no files found
-            mealsData = [
-              {
-                id: 1,
-                name: t('protein_salad'),
-                image: '/images/2.jpg',
-                description: t('protein_salad_description'),
-                usage: t('healthy_lunch'),
-                price: 25,
-                category: 'salads'
-              },
-              {
-                id: 2,
-                name: t('grilled_chicken'),
-                image: '/images/2.jpg',
-                description: t('grilled_chicken_description'),
-                usage: t('balanced_dinner'),
-                price: 35,
-                category: 'main'
-              },
-              {
-                id: 3,
-                name: t('protein_smoothie'),
-                image: '/images/2.jpg',
-                description: t('protein_smoothie_description'),
-                usage: t('post_workout_snack'),
-                price: 15,
-                category: 'drinks'
-              },
-              {
-                id: 4,
-                name: t('grilled_salmon'),
-                image: '/images/2.jpg',
-                description: t('grilled_salmon_description'),
-                usage: t('premium_dinner'),
-                price: 45,
-                category: 'main'
-              },
-              {
-                id: 5,
-                name: t('quinoa_salad'),
-                image: '/images/2.jpg',
-                description: t('quinoa_salad_description'),
-                usage: t('healthy_vegetarian'),
-                price: 22,
-                category: 'salads'
-              },
-              {
-                id: 6,
-                name: t('green_juice'),
-                image: '/images/2.jpg',
-                description: t('green_juice_description'),
-                usage: t('detox_drink'),
-                price: 12,
-                category: 'drinks'
-              },
-              {
-                id: 7,
-                name: t('grilled_beef'),
-                image: '/images/2.jpg',
-                description: t('grilled_beef_description'),
-                usage: t('high_protein_meal'),
-                price: 50,
-                category: 'main'
-              },
-              {
-                id: 8,
-                name: t('energy_balls'),
-                image: '/images/2.jpg',
-                description: t('energy_balls_description'),
-                usage: t('healthy_snack'),
-                price: 8,
-                category: 'snacks'
-              },
-              {
-                id: 9,
-                name: t('healthy_cheesecake'),
-                image: '/images/2.jpg',
-                description: t('healthy_cheesecake_description'),
-                usage: t('healthy_dessert'),
-                price: 18,
-                category: 'desserts'
-              }
-            ];
-          }
-        }
+        const response = await fetch('http://localhost:5000/api/meals');
+        const data = await response.json();
         
-        setMeals(mealsData);
-        setFilteredMeals(mealsData);
-        setLoading(false);
+        if (data.success) {
+          setMeals(data.data.meals);
+        } else {
+          throw new Error(data.message || 'فشل في تحميل الوجبات');
+        }
       } catch (error) {
         console.error('Error loading meals:', error);
+        setError(error.message);
+        // Fallback to sample data
+        setMeals(getSampleMeals());
+      } finally {
         setLoading(false);
       }
     };
 
     loadMeals();
-  }, [i18n.language]);
+  }, []);
 
-  // Filter meals based on search and category
-  useEffect(() => {
+  // Sample data fallback
+  const getSampleMeals = () => {
+    const currentLang = i18n.language || 'en';
+    return [
+      {
+        id: '1',
+        name: currentLang === 'ar' ? 'سلطة البروتين المتوازنة' : 'Balanced Protein Salad',
+        image: '/images/2.jpg',
+        description: currentLang === 'ar' ? 'سلطة صحية غنية بالبروتين مع الخضروات الطازجة والصوص الخاص' : 'Healthy protein-rich salad with fresh vegetables and special dressing',
+        usage: currentLang === 'ar' ? 'وجبة غداء صحية ومتوازنة' : 'Healthy and balanced lunch',
+        price: 28,
+        category: 'salads',
+        calories: 320,
+        prepTime: '15 دقيقة',
+        rating: 4.8
+      },
+      // ... باقي البيانات النموذجية
+    ];
+  };
+
+  // Enhanced filtering and sorting
+  const processedMeals = useMemo(() => {
     let filtered = meals;
 
     // Filter by search term
     if (searchTerm) {
-      filtered = filtered.filter(meal =>
-        meal.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        meal.description.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      filtered = filtered.filter(meal => {
+        const name = typeof meal.name === 'object' 
+          ? meal.name[i18n.language] || meal.name.en || meal.name.ar
+          : meal.name;
+        const description = typeof meal.description === 'object'
+          ? meal.description[i18n.language] || meal.description.en || meal.description.ar
+          : meal.description;
+        const usage = typeof meal.usage === 'object'
+          ? meal.usage[i18n.language] || meal.usage.en || meal.usage.ar
+          : meal.usage;
+
+        return name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+               description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+               usage.toLowerCase().includes(searchTerm.toLowerCase());
+      });
     }
 
     // Filter by category
@@ -150,257 +89,357 @@ const Menu = () => {
       filtered = filtered.filter(meal => meal.category === selectedCategory);
     }
 
-    setFilteredMeals(filtered);
-  }, [searchTerm, selectedCategory, meals]);
+    // Sort meals
+    // في دالة processedMeals، إصلاح منطق الترتيب
+    filtered.sort((a, b) => {
+    switch (sortBy) {
+    case 'price-low':
+    return (a.price || 0) - (b.price || 0);
+    case 'price-high':
+    return (b.price || 0) - (a.price || 0);
+    case 'rating':
+    return (b.rating || 0) - (a.rating || 0);
+    case 'name':
+    default:
+    // معالجة محسنة لأسماء الوجبات
+    let nameA = '';
+    let nameB = '';
+    
+    // للبيانات النموذجية (name كائن)
+    if (typeof a.name === 'object' && a.name) {
+    nameA = a.name[i18n.language] || a.name.en || a.name.ar || '';
+    }
+    // لبيانات الـ API (nameAr, nameEn)
+    else if (a.nameAr || a.nameEn) {
+    nameA = i18n.language === 'ar' ? (a.nameAr || a.nameEn || '') : (a.nameEn || a.nameAr || '');
+    }
+    // للبيانات البسيطة (name كنص)
+    else {
+    nameA = a.name || '';
+    }
+    
+    // نفس المنطق للعنصر الثاني
+    if (typeof b.name === 'object' && b.name) {
+    nameB = b.name[i18n.language] || b.name.en || b.name.ar || '';
+    }
+    else if (b.nameAr || b.nameEn) {
+    nameB = i18n.language === 'ar' ? (b.nameAr || b.nameEn || '') : (b.nameEn || b.nameAr || '');
+    }
+    else {
+    nameB = b.name || '';
+    }
+    
+    // التأكد من أن القيم نصوص قبل المقارنة
+    return String(nameA).localeCompare(String(nameB));
+    }
+    });
+
+    return filtered;
+  }, [meals, searchTerm, selectedCategory, sortBy, i18n.language]);
+
+  useEffect(() => {
+    setFilteredMeals(processedMeals);
+  }, [processedMeals]);
 
   const categories = [
-    { id: 'all', name: t('all_categories') },
-    { id: 'salads', name: t('salads') },
-    { id: 'main', name: t('main_courses') },
-    { id: 'drinks', name: t('drinks') },
-    { id: 'snacks', name: t('snacks') },
-    { id: 'desserts', name: t('desserts') }
+    { id: 'all', name: t('all_categories') || 'جميع الفئات', icon: '🍽️' },
+    { id: 'salads', name: t('salads') || 'السلطات', icon: '🥗' },
+    { id: 'main', name: t('main_courses') || 'الأطباق الرئيسية', icon: '🍖' },
+    { id: 'drinks', name: t('drinks') || 'المشروبات', icon: '🥤' },
+    { id: 'snacks', name: t('snacks') || 'الوجبات الخفيفة', icon: '🥜' },
+    { id: 'desserts', name: t('desserts') || 'الحلويات', icon: '🍰' }
   ];
+
+  const sortOptions = [
+    { value: 'name', label: t('sort_by_name') || 'ترتيب بالاسم' },
+    { value: 'price-low', label: t('price_low_high') || 'السعر: من الأقل للأعلى' },
+    { value: 'price-high', label: t('price_high_low') || 'السعر: من الأعلى للأقل' },
+    { value: 'rating', label: t('sort_by_rating') || 'ترتيب بالتقييم' }
+  ];
+
+  // Enhanced Meal Card Component
+  // تحسين MealCard component
+  const MealCard = ({ meal }) => {
+  // معالجة محسنة للأسماء والأوصاف
+  const getName = () => {
+  if (typeof meal.name === 'object') {
+  return meal.name[i18n.language] || meal.name.en || meal.name.ar || 'اسم غير متوفر';
+  }
+  if (meal.nameAr || meal.nameEn) {
+  return i18n.language === 'ar' ? (meal.nameAr || meal.nameEn) : (meal.nameEn || meal.nameAr);
+  }
+  return meal.name || 'اسم غير متوفر';
+  };
+  
+  const getDescription = () => {
+  if (typeof meal.description === 'object') {
+  return meal.description[i18n.language] || meal.description.en || meal.description.ar || 'وصف غير متوفر';
+  }
+  if (meal.descriptionAr || meal.descriptionEn) {
+  return i18n.language === 'ar' ? (meal.descriptionAr || meal.descriptionEn) : (meal.descriptionEn || meal.descriptionAr);
+  }
+  return meal.description || 'وصف غير متوفر';
+  };
+  
+  // إضافة دالة للحصول على معلومات الاستخدام
+  const getUsage = () => {
+  if (typeof meal.usage === 'object') {
+  return meal.usage[i18n.language] || meal.usage.en || meal.usage.ar || 'للوجبات اليومية';
+  }
+  return meal.usage || meal.ingredients || 'للوجبات اليومية';
+  };
+  
+  const name = getName();
+  const description = getDescription();
+  const usage = getUsage(); // إضافة هذا السطر
+  
+  return (
+  <div className="group bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden border border-gray-100 backdrop-blur-sm">
+  {/* Image Container with Overlay */}
+  <div className="relative w-full h-64 bg-gradient-to-br from-orange-50 to-orange-100 overflow-hidden">
+  // في مكون عرض الصورة
+  <img 
+  src={meal.image || '/images/default-meal.jpg'} 
+  alt={meal.nameAr || meal.nameEn}
+  onError={(e) => {
+  e.target.src = '/images/default-meal.jpg'; // صورة افتراضية
+  }}
+  />
+  {/* Overlay with Rating */}
+  <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 flex items-center gap-1">
+  <span className="text-yellow-500 text-sm">⭐</span>
+  <span className="text-sm font-semibold text-gray-700">{meal.rating || '4.5'}</span>
+  </div>
+  {/* Category Badge */}
+  <div className="absolute top-4 left-4 bg-orange-500/90 backdrop-blur-sm text-white px-3 py-1 rounded-full text-sm font-medium">
+  {categories.find(cat => cat.id === meal.category)?.icon} {categories.find(cat => cat.id === meal.category)?.name}
+  </div>
+  {/* Price Badge */}
+  <div className="absolute bottom-4 right-4 bg-green-500/90 backdrop-blur-sm text-white px-4 py-2 rounded-full font-bold">
+  {meal.price} {t('currency') || 'ريال'}
+  </div>
+  </div>
+  
+  {/* Content */}
+  <div className="p-6">
+  <div className="mb-4">
+  <h3 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-orange-600 transition-colors duration-300">
+  {name}
+  </h3>
+  <p className="text-gray-600 text-sm leading-relaxed line-clamp-2">
+  {description}
+  </p>
+  </div>
+  {/* Meal Info */}
+  <div className="flex items-center justify-between mb-4 text-sm text-gray-500">
+  <div className="flex items-center gap-1">
+  <span>⏱️</span>
+  <span>{meal.prepTime || '15 دقيقة'}</span>
+  </div>
+  <div className="flex items-center gap-1">
+  <span>🔥</span>
+  <span>{meal.calories || '300'} سعرة</span>
+  </div>
+  </div>
+  
+  {/* إزالة أو تعليق هذا القسم */}
+  {/*
+  <div className="mb-4">
+  <p className="text-gray-600 text-sm">
+  <span className="font-semibold text-orange-600">{t('usage') || 'الاستخدام'}:</span> {usage}
+  </p>
+  </div>
+  */}
+  
+  {/* Action Buttons */}
+  <div className="flex gap-3">
+  <Link 
+  to={`/meal/${meal.id}`}
+  className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 text-center transform hover:scale-105 shadow-lg hover:shadow-xl"
+  >
+  {t('view_details') || 'عرض التفاصيل'}
+  </Link>
+  <button className="bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-orange-600 p-3 rounded-xl transition-all duration-300 transform hover:scale-105">
+  ❤️
+  </button>
+  </div>
+  </div>
+  </div>
+  );
+  };
 
   if (loading) {
     return (
-      <div className="pt-20 min-h-screen flex items-center justify-center">
+      <div className="pt-20 min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-white">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-500 mx-auto mb-4"></div>
-          <p className="text-xl text-gray-600">{t('loading')}</p>
+          <div className="relative">
+            <div className="animate-spin rounded-full h-32 w-32 border-4 border-orange-200 border-t-orange-500 mx-auto mb-6"></div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-2xl">🍽️</span>
+            </div>
+          </div>
+          <p className="text-xl text-gray-600 font-medium">{t('loading') || 'جاري التحميل...'}</p>
+          <p className="text-sm text-gray-500 mt-2">{t('loading_meals') || 'جاري تحميل قائمة الوجبات'}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="pt-20 min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-white">
+        <div className="text-center max-w-md mx-auto p-8">
+          <div className="text-6xl mb-6">⚠️</div>
+          <h3 className="text-2xl font-bold text-gray-700 mb-4">
+            {t('error_loading') || 'خطأ في التحميل'}
+          </h3>
+          <p className="text-gray-500 mb-8">
+            {error}
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105"
+          >
+            {t('retry') || 'إعادة المحاولة'}
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="pt-20">
-      {/* Hero Section */}
-      <section className="relative py-20 bg-gradient-to-r from-orange-500 to-red-500">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center text-white">
-            <h1 className="text-5xl font-bold mb-6" data-aos="fade-up">
-              {t('our_menu')}
-            </h1>
-            <p className="text-xl text-orange-100 max-w-3xl mx-auto" data-aos="fade-up" data-aos-delay="200">
-              {t('menu_hero_description')}
-            </p>
-          </div>
-        </div>
-      </section>
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50">
 
-      {/* Search and Filter Section */}
-      <section className="py-12 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Search Bar */}
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
-                  </svg>
+
+      {/* Filters Section */}
+      <section className="py-8 bg-white/80 backdrop-blur-sm sticky top-20 z-40 border-b border-gray-200">
+        <div className="container mx-auto px-4">
+          <div className="max-w-6xl mx-auto">
+            {/* Search and Sort Row */}
+            <div className="flex flex-col lg:flex-row gap-4 items-center justify-between mb-6">
+              {/* Search Input */}
+              <div className="w-full lg:w-96 relative">
+                <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                  <span className="text-gray-400">🔍</span>
                 </div>
                 <input
                   type="text"
-                  placeholder={t('search_meals')}
+                  placeholder={t('search_meals') || 'ابحث عن الوجبات...'}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500 text-lg"
+                  className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 bg-white/90 backdrop-blur-sm"
                 />
               </div>
-
-              {/* Category Filter */}
-              <div>
+              
+              {/* Sort Dropdown */}
+              <div className="w-full lg:w-64">
                 <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="block w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500 text-lg"
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white/90 backdrop-blur-sm transition-all duration-300"
                 >
-                  {categories.map(category => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
+                  {sortOptions.map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
                     </option>
                   ))}
                 </select>
               </div>
+              
+              {/* View Mode Toggle */}
+              <div className="flex bg-gray-100 rounded-xl p-1">
+                <button
+                  onClick={() => setViewMode('grid')}
+                  className={`px-4 py-2 rounded-lg transition-all duration-300 ${
+                    viewMode === 'grid' 
+                      ? 'bg-orange-500 text-white shadow-md' 
+                      : 'text-gray-600 hover:text-orange-600'
+                  }`}
+                >
+                  ⊞
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`px-4 py-2 rounded-lg transition-all duration-300 ${
+                    viewMode === 'list' 
+                      ? 'bg-orange-500 text-white shadow-md' 
+                      : 'text-gray-600 hover:text-orange-600'
+                  }`}
+                >
+                  ☰
+                </button>
+              </div>
+            </div>
+            
+            {/* Category Filter Pills */}
+            <div className="flex flex-wrap gap-3 justify-center">
+              {categories.map(category => (
+                <button
+                  key={category.id}
+                  onClick={() => setSelectedCategory(category.id)}
+                  className={`px-6 py-3 rounded-full font-medium transition-all duration-300 transform hover:scale-105 ${
+                    selectedCategory === category.id
+                      ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg'
+                      : 'bg-white text-gray-600 hover:bg-orange-50 hover:text-orange-600 border-2 border-gray-200 hover:border-orange-300'
+                  }`}
+                >
+                  <span className="mr-2">{category.icon}</span>
+                  {category.name}
+                </button>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Meals Grid */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Results Section */}
+      <section className="py-12">
+        <div className="container mx-auto px-4">
+          {/* Results Counter */}
+          <div className="text-center mb-8">
+            <p className="text-lg text-gray-600">
+              {t('showing_results') || 'عرض'} <span className="font-bold text-orange-600">{filteredMeals.length}</span> {t('of') || 'من'} <span className="font-bold">{meals.length}</span> {t('meals') || 'وجبة'}
+              {selectedCategory !== 'all' && (
+                <span className="text-orange-600"> في فئة {categories.find(cat => cat.id === selectedCategory)?.name}</span>
+              )}
+            </p>
+          </div>
+          
+          {/* Meals Grid/List */}
           {filteredMeals.length === 0 ? (
             <div className="text-center py-20">
-              <svg className="mx-auto h-24 w-24 text-gray-400 mb-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.29-1.582-4.29-3.53 0-.773.244-1.49.673-2.08L6 7.5A7.966 7.966 0 004.5 12C4.5 16.142 7.858 19.5 12 19.5s7.5-3.358 7.5-7.5c0-1.747-.6-3.352-1.607-4.62L16.5 9.5c.429.59.673 1.307.673 2.08C17.173 13.418 15.223 15 12.883 15z" />
-              </svg>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">{t('no_meals_found')}</h3>
-              <p className="text-gray-600 mb-6">{t('try_different_search')}</p>
+              <div className="text-6xl mb-6">🔍</div>
+              <h3 className="text-2xl font-bold text-gray-700 mb-4">
+                {t('no_meals_found') || 'لم يتم العثور على وجبات'}
+              </h3>
+              <p className="text-gray-500 mb-8 max-w-md mx-auto">
+                {t('try_different_search') || 'جرب البحث بكلمات مختلفة أو اختر فئة أخرى'}
+              </p>
               <button
                 onClick={() => {
                   setSearchTerm('');
                   setSelectedCategory('all');
                 }}
-                className="bg-orange-500 text-white px-6 py-3 rounded-lg hover:bg-orange-600 transition-colors duration-300"
+                className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105"
               >
-                {t('clear_filters')}
+                {t('clear_filters') || 'مسح الفلاتر'}
               </button>
             </div>
           ) : (
-            <>
-              <div className="text-center mb-12">
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                  {t('available_meals')} ({filteredMeals.length})
-                </h2>
-                <div className="w-24 h-1 bg-gradient-to-r from-orange-500 to-red-500 mx-auto"></div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {filteredMeals.map((meal, index) => (
-                  <div 
-                    key={meal.id}
-                    className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 group"
-                    data-aos="fade-up"
-                    data-aos-delay={index * 100}
-                  >
-                    <div className="relative h-64 overflow-hidden">
-                      <img
-                        src={meal.image}
-                        alt={meal.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                        onError={(e) => {
-                          e.target.src = '/images/placeholder-meal.jpg';
-                        }}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                      <div className="absolute top-4 right-4 bg-orange-500 text-white px-3 py-1 rounded-full font-semibold">
-                        ${meal.price}
-                      </div>
-                    </div>
-                    
-                    <div className="p-6">
-                      <h3 className="text-xl font-bold text-gray-900 mb-3">
-                        {meal.name}
-                      </h3>
-                      <p className="text-gray-600 mb-4 leading-relaxed">
-                        {meal.description}
-                      </p>
-                      
-                      <div className="flex items-center justify-between mb-4">
-                        <span className="text-sm text-orange-500 font-medium bg-orange-50 px-3 py-1 rounded-full">
-                          {meal.usage}
-                        </span>
-                        <span className="text-2xl font-bold text-gray-900">
-                          ${meal.price}
-                        </span>
-                      </div>
-                      
-                      <div className="flex space-x-2 rtl:space-x-reverse">
-                        <Link
-                          to={`/meal/${meal.id}`}
-                          className="flex-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white py-3 px-4 rounded-lg font-semibold text-center hover:from-blue-600 hover:to-purple-600 transition-all duration-300"
-                        >
-                          {t('view_details')}
-                        </Link>
-                        <Link
-                          to="/register"
-                          className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 text-white py-3 px-4 rounded-lg font-semibold text-center hover:from-orange-600 hover:to-red-600 transition-all duration-300"
-                        >
-                          {t('order_now')}
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </>
+            <div className={`${
+              viewMode === 'grid' 
+                ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8' 
+                : 'space-y-6'
+            }`}>
+              {filteredMeals.map(meal => (
+                <MealCard key={meal.id} meal={meal} />
+              ))}
+            </div>
           )}
-        </div>
-      </section>
-
-      {/* Nutrition Info Section */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16" data-aos="fade-up">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              {t('nutrition_commitment')}
-            </h2>
-            <div className="w-24 h-1 bg-gradient-to-r from-orange-500 to-red-500 mx-auto mb-6"></div>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              {t('nutrition_description')}
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center p-8 bg-white rounded-lg shadow-lg" data-aos="fade-up" data-aos-delay="100">
-              <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-teal-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">
-                {t('fresh_ingredients')}
-              </h3>
-              <p className="text-gray-600">
-                {t('fresh_ingredients_desc')}
-              </p>
-            </div>
-            
-            <div className="text-center p-8 bg-white rounded-lg shadow-lg" data-aos="fade-up" data-aos-delay="200">
-              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">
-                {t('balanced_nutrition')}
-              </h3>
-              <p className="text-gray-600">
-                {t('balanced_nutrition_desc')}
-              </p>
-            </div>
-            
-            <div className="text-center p-8 bg-white rounded-lg shadow-lg" data-aos="fade-up" data-aos-delay="300">
-              <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">
-                {t('expert_prepared')}
-              </h3>
-              <p className="text-gray-600">
-                {t('expert_prepared_desc')}
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-orange-500 to-red-500">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl font-bold text-white mb-6" data-aos="fade-up">
-            {t('ready_to_order')}
-          </h2>
-          <p className="text-xl text-orange-100 mb-8 max-w-2xl mx-auto" data-aos="fade-up" data-aos-delay="200">
-            {t('order_description')}
-          </p>
-          <Link
-            to="/register"
-            className="bg-white text-orange-500 px-8 py-4 rounded-full font-semibold text-lg hover:bg-gray-100 transform hover:scale-105 transition-all duration-300 shadow-lg"
-            data-aos="fade-up"
-            data-aos-delay="400"
-          >
-            {t('start_ordering')}
-          </Link>
         </div>
       </section>
     </div>
   );
 };
 
-export default Menu;
+export default MenuP;
