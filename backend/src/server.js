@@ -28,9 +28,9 @@ app.use((req, res, next) => {
 });
 
 // المسارات
-app.use('/api/contact', contactRoutes);
-app.use('/api/register', registerRoutes);
-app.use('/api/meals', mealRoutes);
+app.use('/contact', contactRoutes);
+app.use('/register', registerRoutes);
+app.use('/meals', mealRoutes);
 
 // مسار الاختبار
 app.get('/', (req, res) => {
