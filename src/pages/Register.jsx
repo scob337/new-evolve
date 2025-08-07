@@ -1,59 +1,62 @@
-import{ useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { 
+  InputField, 
+  TextareaField, 
+  RadioGroup, 
+  CheckboxField, 
+  SectionHeader 
+} from '../components/FormComponents';
 
 const Register = () => {
-  const { t } = useTranslation();
   const [formData, setFormData] = useState({
-    // Basic Information
+    // المعلومات الأساسية
     fullName: '',
-    email: '', // إضافة حقل الإيميل
-    mobile: '', // إضافة حقل الموبايل
     age: '',
-    gender: '',
+    dateOfBirth: '',
     height: '',
     weight: '',
+    gender: '',
+    phoneNumber: '',
+    
+    // الأهداف والاشتراك
     occupation: '',
-    cityCountry: '',
+    subscriptionGoal: '',
+    otherGoal: '',
+    subscriptionPeriod: '',
     
-    // Goals & Motivation
-    targetWeight: '',
-    targetDate: '',
-    weightLossReasons: [],
-    motivationLevel: '',
+    // النشاط الرياضي
+    currentSport: '',
+    fitnessLevel: '',
+    weeklyWorkoutDays: '',
+    weeklySchedule: '',
     
-    // Health & Medical
-    medicalConditions: [],
+    // الصحة العامة
+    healthIssues: '',
+    lastBloodTest: '',
+    abnormalResults: '',
+    currentSupplements: '',
     medications: '',
-    hasMedications: false,
-    foodAllergies: '',
-    hasFoodAllergies: false,
-    doctorClearance: '',
     
-    // Current Habits
-    mealsPerDay: '',
-    eatingOutFrequency: '',
-    sugaryDrinks: '',
-    waterIntake: '',
+    // نمط الحياة
+    dailySteps: '',
     sleepHours: '',
-    exerciseFrequency: '',
-    exerciseTypes: [],
+    dietExperience: '',
+    reasonForStopping: '',
+    bodyHistory: '',
     
-    // Preferences & Support
-    mealPlanPreference: '',
-    trainingInterest: [],
-    dietaryRestrictions: '',
-    hasDietaryRestrictions: false,
-    coachGenderPreference: '',
-    supportLevel: '',
+    // التغذية
+    foodRestrictions: '',
+    mealPreparation: '',
+    dairyIssues: '',
     
-    // Lifestyle & Readiness
-    stressLevel: '',
-    smokingStatus: '',
-    alcoholConsumption: '',
-    biggestChallenge: '',
-    pastSuccesses: '',
-    hasSupport: ''
+    // معلومات شخصية
+    maritalStatus: '',
+    additionalInfo: '',
+    
+    // الالتزام والموافقة
+    commitmentToProgram: '',
+    termsAccepted: false
   });
   
   const [errors, setErrors] = useState({});
@@ -63,29 +66,10 @@ const Register = () => {
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     
-    if (type === 'checkbox') {
-      if (name === 'weightLossReasons' || name === 'medicalConditions' || name === 'exerciseTypes' || name === 'trainingInterest') {
-        // Handle checkbox arrays
-        setFormData(prev => ({
-          ...prev,
-          [name]: checked 
-            ? [...prev[name], value]
-            : prev[name].filter(item => item !== value)
-        }));
-      } else {
-        // Handle single checkboxes
-        setFormData(prev => ({
-          ...prev,
-          [name]: checked
-        }));
-      }
-    } else {
-      // Handle other input types
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }));
-    }
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
     
     // Clear error when user starts typing
     if (errors[name]) {
@@ -99,32 +83,77 @@ const Register = () => {
   const validateForm = () => {
     const newErrors = {};
     
-    // Helper function للتحقق من القيم
-    const isEmpty = (value) => {
-      if (typeof value === 'string') {
-        return !value.trim();
+    // التحقق من الحقول المطلوبة
+    const requiredFields = [
+      { field: 'fullName', message: 'الاسم الثلاثي مطلوب' },
+      { field: 'age', message: 'العمر مطلوب' },
+      { field: 'dateOfBirth', message: 'تاريخ الميلاد مطلوب' },
+      { field: 'height', message: 'الطول مطلوب' },
+      { field: 'weight', message: 'الوزن مطلوب' },
+      { field: 'gender', message: 'الجنس مطلوب' },
+      { field: 'phoneNumber', message: 'رقم الهاتف مطلوب' },
+      { field: 'occupation', message: 'المهنة مطلوبة' },
+      { field: 'subscriptionGoal', message: 'هدف الاشتراك مطلوب' },
+      { field: 'commitmentToProgram', message: 'يرجى الإجابة على سؤال الالتزام بالبرنامج' }
+    ];
+    
+    requiredFields.forEach(({ field, message }) => {
+      if (!formData[field] || formData[field].toString().trim() === '') {
+        newErrors[field] = message;
       }
-      return !value && value !== 0;
-    };
+    });
     
-    // Basic Information validation
-    if (isEmpty(formData.fullName)) newErrors.fullName = 'Full name is required';
-    if (isEmpty(formData.email)) newErrors.email = 'Email is required';
-    if (isEmpty(formData.mobile)) newErrors.mobile = 'Mobile is required';
-    if (isEmpty(formData.age)) newErrors.age = 'Age is required';
-    if (isEmpty(formData.gender)) newErrors.gender = 'Gender is required';
-    if (isEmpty(formData.height)) newErrors.height = 'Height is required';
-    if (isEmpty(formData.weight)) newErrors.weight = 'Weight is required';
-    if (isEmpty(formData.occupation)) newErrors.occupation = 'Occupation is required';
-    if (isEmpty(formData.cityCountry)) newErrors.cityCountry = 'City & Country is required';
+    // التحقق من رقم الهاتف
+    const phoneRegex = /^[0-9]{10,15}$/;
+    if (formData.phoneNumber && !phoneRegex.test(formData.phoneNumber.replace(/[\s-+()]/g, ''))) {
+      newErrors.phoneNumber = 'يرجى إدخال رقم هاتف صحيح';
+    }
     
-    // Goals & Motivation validation
-    if (isEmpty(formData.targetWeight)) newErrors.targetWeight = 'Target weight is required';
-    if (isEmpty(formData.targetDate)) newErrors.targetDate = 'Target date is required';
-    if (isEmpty(formData.motivationLevel)) newErrors.motivationLevel = 'Motivation level is required';
+    // التحقق من العمر
+    const age = parseInt(formData.age);
+    if (formData.age && (age < 16 || age > 80)) {
+      newErrors.age = 'العمر يجب أن يكون بين 16 و 80 سنة';
+    }
+    
+    // التحقق من الطول
+    const height = parseInt(formData.height);
+    if (formData.height && (height < 120 || height > 220)) {
+      newErrors.height = 'الطول يجب أن يكون بين 120 و 220 سم';
+    }
+    
+    // التحقق من الوزن
+    const weight = parseInt(formData.weight);
+    if (formData.weight && (weight < 30 || weight > 200)) {
+      newErrors.weight = 'الوزن يجب أن يكون بين 30 و 200 كجم';
+    }
+    
+    // التحقق من الموافقة على الشروط
+    if (!formData.termsAccepted) {
+      newErrors.termsAccepted = 'يجب الموافقة على الشروط والأحكام للمتابعة';
+    }
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const formatDataForSubmission = (data) => {
+    return {
+      ...data,
+      // تحويل القيم إلى نصوص واضحة
+      gender: data.gender === 'male' ? 'ذكر / Male' : data.gender === 'female' ? 'أنثى / Female' : data.gender,
+      subscriptionGoal: {
+        'fat_loss': 'خسارة الدهون / Fat Loss',
+        'muscle_gain': 'بناء العضل / Muscle Gain',
+        'both': 'خسارة الدهون وبناء العضل / Both',
+        'other': 'هدف آخر / Other'
+      }[data.subscriptionGoal] || data.subscriptionGoal,
+      commitmentToProgram: {
+        'yes': 'نعم، سألتزم بالبرنامج / Yes, I will commit',
+        'maybe': 'ربما، حسب الظروف / Maybe, depending on circumstances',
+        'no': 'لا، لست متأكد / No, I\'m not sure'
+      }[data.commitmentToProgram] || data.commitmentToProgram,
+      termsAccepted: data.termsAccepted ? 'موافق / Agreed' : 'غير موافق / Not Agreed'
+    };
   };
 
   const handleSubmit = async (e) => {
@@ -141,12 +170,19 @@ const Register = () => {
     setIsSubmitting(true);
     
     try {
+      const formattedData = formatDataForSubmission(formData);
+      
       const response = await fetch("https://formsubmit.co/ajax/f.alamoudi@evolvetheapp.com", {
-        method: 'POST',
+        method: "POST",
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formattedData,
+          _subject: "تسجيل جديد في EVOLVE - استمارة التغذية الشاملة",
+          _template: "table"
+        })
       });
       
       const data = await response.json();
@@ -155,31 +191,44 @@ const Register = () => {
         setIsSuccess(true);
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
-        throw new Error(data.message || 'Registration failed');
+        throw new Error(data.message || 'فشل في التسجيل');
       }
       
     } catch (error) {
-      console.error('Registration error:', error);
-      alert(error.message || 'Registration failed. Please try again.');
+      console.error('خطأ في التسجيل:', error);
+      setErrors({ submit: error.message || 'فشل في التسجيل. يرجى المحاولة مرة أخرى.' });
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  // Success Page
   if (isSuccess) {
     return (
-      <div className=" min-h-screen bg-gray-50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 ">
-          <div className="bg-white rounded-lg shadow-xl p-8 text-center">
-            <div className="w-20 h-20 bg-green-100 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-red-50">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="bg-white rounded-3xl shadow-2xl p-8 text-center border border-orange-100">
+            <div className="w-32 h-32 bg-gradient-to-r from-green-400 to-emerald-500 text-white rounded-full flex items-center justify-center mx-auto mb-8 shadow-xl">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Registration Successful!</h2>
-            <p className="text-lg text-gray-600 mb-8">Thank you for registering with EVOLVE. We will contact you shortly to begin your fitness journey.</p>
-            <Link to="/" className="inline-block bg-orange-500 text-white px-6 py-3 rounded-lg font-medium hover:bg-orange-600 transition duration-300">
-              Back to Home
+            <h2 className="text-5xl font-bold text-gray-900 mb-6 bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">
+              تم التسجيل بنجاح!
+            </h2>
+            <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+              شكراً لك على اختيار EVOLVE. تم استلام استمارتك بنجاح وسيتواصل معك فريقنا المختص خلال 24 ساعة لبدء رحلتك المخصصة في التغذية الصحية.
+            </p>
+            <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-2xl p-6 mb-8">
+              <p className="text-orange-700 font-semibold text-lg">
+                💡 نصيحة: تأكد من فحص بريدك الإلكتروني بانتظام للحصول على تحديثات برنامجك الغذائي
+              </p>
+            </div>
+            <Link 
+              to="/" 
+              className="inline-block bg-gradient-to-r from-orange-500 to-red-500 text-white px-10 py-4 rounded-2xl font-bold text-xl hover:from-orange-600 hover:to-red-600 transition duration-300 shadow-xl transform hover:scale-105"
+            >
+              العودة للصفحة الرئيسية
             </Link>
           </div>
         </div>
@@ -187,924 +236,513 @@ const Register = () => {
     );
   }
 
+  // Form Options
+  const genderOptions = [
+    { value: 'male', label: 'ذكر / Male' },
+    { value: 'female', label: 'أنثى / Female' }
+  ];
+
+  const goalOptions = [
+    { value: 'fat_loss', label: 'خسارة الدهون / Fat Loss' },
+    { value: 'muscle_gain', label: 'بناء العضل / Muscle Gain' },
+    { value: 'both', label: 'خسارة الدهون وبناء العضل / Both' },
+    { value: 'other', label: 'هدف آخر / Other Goal' }
+  ];
+
+  const commitmentOptions = [
+    { value: 'yes', label: 'نعم، سألتزم بالبرنامج / Yes, I will commit' },
+    { value: 'maybe', label: 'ربما، حسب الظروف / Maybe, depending on circumstances' },
+    { value: 'no', label: 'لا، لست متأكد / No, I\'m not sure' }
+  ];
+
+  const fitnessLevelOptions = [
+    { value: 'beginner', label: 'مبتدئ / Beginner' },
+    { value: 'intermediate', label: 'متوسط / Intermediate' },
+    { value: 'advanced', label: 'متقدم / Advanced' },
+    { value: 'professional', label: 'محترف / Professional' }
+  ];
+
+  const mealPrepOptions = [
+    { value: 'self', label: 'سأجهز وجباتي بنفسي / I will prepare my meals myself' },
+    { value: 'restaurant', label: 'سأشترك في مطعم / I will subscribe to a restaurant' },
+    { value: 'mixed', label: 'مختلط / Mixed' }
+  ];
+
   return (
-    <div className=" min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-red-50" dir="rtl">
       {/* Hero Section */}
-      <section className="py-12 bg-gradient-to-r from-orange-500 to-red-500">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-20 bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 relative overflow-hidden">
+        <div className="absolute inset-0 bg-black opacity-10"></div>
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center text-white">
-            <h1 className="text-4xl font-bold mb-4">
-              Evolve Weight Loss Intake Survey
+            <h1 className="text-6xl font-bold mb-8 drop-shadow-2xl leading-tight">
+              استمارة التغذية الشاملة
+              <span className="block text-4xl mt-4 text-orange-100">
+                Comprehensive Nutrition Form
+              </span>
             </h1>
-            <p className="text-xl text-orange-100">
-              Complete this survey to start your personalized weight loss journey
+            <p className="text-2xl text-orange-100 leading-relaxed max-w-4xl mx-auto">
+              ابدأ رحلتك المخصصة في التغذية الصحية مع EVOLVE - برنامج غذائي مصمم خصيصاً لك
             </p>
+            <div className="mt-8 flex justify-center">
+              <div className="bg-white bg-opacity-20 rounded-2xl px-8 py-4 backdrop-blur-sm">
+                <p className="text-lg font-semibold">⭐ خدمة مميزة للعملاء المتميزين</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Registration Form */}
-      <section className="py-12">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-lg shadow-xl overflow-hidden p-8">
-            <form onSubmit={handleSubmit}>
+      <section className="py-20">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-orange-100">
+            <div className="p-8 md:p-16">
               
-              {/* Basic Information */}
-              <div className="mb-10">
-                <h3 className="text-2xl font-bold text-gray-900 mb-6 border-b-2 border-orange-500 pb-2">Basic Information</h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Full Name *
-                    </label>
-                    <input
-                      type="text"
+              {/* عرض رسائل الخطأ العامة */}
+              {errors.submit && (
+                <div className="mb-8 p-6 bg-red-50 border-l-4 border-red-500 rounded-xl">
+                  <div className="flex items-center">
+                    <svg className="w-6 h-6 text-red-500 ml-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    </svg>
+                    <p className="text-red-700 font-semibold text-lg">{errors.submit}</p>
+                  </div>
+                </div>
+              )}
+              
+              <form onSubmit={handleSubmit} className="space-y-16">
+                {/* المعلومات الأساسية */}
+                <div>
+                  <SectionHeader title="المعلومات الأساسية / Basic Information" />
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <InputField
+                      label="الاسم الثلاثي / Full Name"
                       name="fullName"
                       value={formData.fullName}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
-                        errors.fullName ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                      placeholder="Enter your full name"
+                      error={errors.fullName}
+                      placeholder="أدخل اسمك الثلاثي كاملاً / Enter your full name"
+                      required
                     />
-                    {errors.fullName && <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>}
-                  </div>
-                  
-                  {/* إضافة حقل الإيميل */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Email *
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
-                        errors.email ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                      placeholder="Enter your email"
-                    />
-                    {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-                  </div>
-                  
-                  {/* إضافة حقل الموبايل */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Mobile *
-                    </label>
-                    <input
-                      type="tel"
-                      name="mobile"
-                      value={formData.mobile}
-                      onChange={handleInputChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
-                        errors.mobile ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                      placeholder="Enter your mobile number"
-                    />
-                    {errors.mobile && <p className="text-red-500 text-sm mt-1">{errors.mobile}</p>}
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Age *
-                    </label>
-                    <input
-                      type="number"
+                    
+                    <InputField
+                      label="العمر / Age"
                       name="age"
+                      type="number"
                       value={formData.age}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
-                        errors.age ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                      placeholder="Enter your age"
+                      error={errors.age}
+                      placeholder="25"
+                      min="16"
+                      max="80"
+                      required
                     />
-                    {errors.age && <p className="text-red-500 text-sm mt-1">{errors.age}</p>}
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Gender *
-                    </label>
-                    <div className="flex items-center space-x-6">
-                      <label className="flex items-center">
-                        <input
-                          type="radio"
-                          name="gender"
-                          value="male"
-                          checked={formData.gender === 'male'}
-                          onChange={handleInputChange}
-                          className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">Male</span>
-                      </label>
-                      <label className="flex items-center">
-                        <input
-                          type="radio"
-                          name="gender"
-                          value="female"
-                          checked={formData.gender === 'female'}
-                          onChange={handleInputChange}
-                          className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">Female</span>
-                      </label>
-                    </div>
-                    {errors.gender && <p className="text-red-500 text-sm mt-1">{errors.gender}</p>}
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Height (cm) *
-                    </label>
-                    <input
-                      type="number"
+                    
+                    <InputField
+                      label="تاريخ الميلاد / Date of Birth"
+                      name="dateOfBirth"
+                      type="date"
+                      value={formData.dateOfBirth}
+                      onChange={handleInputChange}
+                      error={errors.dateOfBirth}
+                      required
+                    />
+                    
+                    <InputField
+                      label="الطول (سم) / Height (cm)"
                       name="height"
+                      type="number"
                       value={formData.height}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
-                        errors.height ? 'border-red-500' : 'border-gray-300'
-                      }`}
+                      error={errors.height}
                       placeholder="170"
+                      min="120"
+                      max="220"
+                      required
                     />
-                    {errors.height && <p className="text-red-500 text-sm mt-1">{errors.height}</p>}
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Weight (kg) *
-                    </label>
-                    <input
-                      type="number"
+                    
+                    <InputField
+                      label="الوزن (كجم) / Weight (kg)"
                       name="weight"
+                      type="number"
                       value={formData.weight}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
-                        errors.weight ? 'border-red-500' : 'border-gray-300'
-                      }`}
+                      error={errors.weight}
                       placeholder="70"
+                      min="30"
+                      max="200"
+                      required
                     />
-                    {errors.weight && <p className="text-red-500 text-sm mt-1">{errors.weight}</p>}
+                    
+                    <InputField
+                      label="رقم الهاتف / Phone Number"
+                      name="phoneNumber"
+                      type="tel"
+                      value={formData.phoneNumber}
+                      onChange={handleInputChange}
+                      error={errors.phoneNumber}
+                      placeholder="05xxxxxxxx"
+                      required
+                    />
                   </div>
                   
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Occupation *
-                    </label>
-                    <input
-                      type="text"
+                  <div className="mt-8">
+                    <RadioGroup
+                      label="الجنس / Gender"
+                      name="gender"
+                      value={formData.gender}
+                      onChange={handleInputChange}
+                      options={genderOptions}
+                      error={errors.gender}
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* المهنة والأهداف */}
+                <div>
+                  <SectionHeader title="المهنة والأهداف / Occupation & Goals" />
+                  
+                  <div className="space-y-8">
+                    <TextareaField
+                      label="المهنة؟ وهل هي مكتبية أم ميدانية؟ / Occupation? Is it desk-based or fieldwork?"
                       name="occupation"
                       value={formData.occupation}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
-                        errors.occupation ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                      placeholder="Enter your occupation"
+                      error={errors.occupation}
+                      placeholder="مثال: مهندس برمجيات - عمل مكتبي 8 ساعات يومياً / Example: Software Engineer - Desk job 8 hours daily"
+                      rows={3}
+                      required
                     />
-                    {errors.occupation && <p className="text-red-500 text-sm mt-1">{errors.occupation}</p>}
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      City & Country *
-                    </label>
-                    <input
-                      type="text"
-                      name="cityCountry"
-                      value={formData.cityCountry}
+                    
+                    <RadioGroup
+                      label="ما هو هدفك من الاشتراك؟ / What is your goal from the subscription?"
+                      name="subscriptionGoal"
+                      value={formData.subscriptionGoal}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
-                        errors.cityCountry ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                      placeholder="Riyadh, Saudi Arabia"
+                      options={goalOptions}
+                      error={errors.subscriptionGoal}
+                      required
                     />
-                    {errors.cityCountry && <p className="text-red-500 text-sm mt-1">{errors.cityCountry}</p>}
+                    
+                    {formData.subscriptionGoal === 'other' && (
+                      <TextareaField
+                        label="إذا كان هدفك هدف آخر، الرجاء ذكره / If your goal is other, please specify"
+                        name="otherGoal"
+                        value={formData.otherGoal}
+                        onChange={handleInputChange}
+                        error={errors.otherGoal}
+                        placeholder="اذكر هدفك بالتفصيل... / Specify your goal in detail..."
+                        rows={3}
+                      />
+                    )}
+                    
+                    <InputField
+                      label="ما هي مدة الاشتراك التي تريدها؟ / What is the desired subscription period?"
+                      name="subscriptionPeriod"
+                      value={formData.subscriptionPeriod}
+                      onChange={handleInputChange}
+                      error={errors.subscriptionPeriod}
+                      placeholder="مثال: 3 أشهر، 6 أشهر، سنة / Example: 3 months, 6 months, 1 year"
+                    />
                   </div>
                 </div>
-              </div>
 
-              {/* Goals & Motivation */}
-              <div className="mb-10">
-                <h3 className="text-2xl font-bold text-gray-900 mb-6 border-b-2 border-orange-500 pb-2">Goals & Motivation</h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      What is your target weight? (kg) *
-                    </label>
-                    <input
+                {/* النشاط الرياضي */}
+                <div>
+                  <SectionHeader title="النشاط الرياضي / Physical Activity" />
+                  
+                  <div className="space-y-8">
+                    <InputField
+                      label="إذا كنت تمارس الرياضة حالياً، ما هي رياضتك؟ / If you currently exercise, what is your sport?"
+                      name="currentSport"
+                      value={formData.currentSport}
+                      onChange={handleInputChange}
+                      error={errors.currentSport}
+                      placeholder="مثال: كمال أجسام، جري، سباحة، كرة قدم... / Example: Bodybuilding, Running, Swimming, Football..."
+                    />
+                    
+                    <RadioGroup
+                      label="ما هو مستواك الرياضي؟ / What is your fitness level?"
+                      name="fitnessLevel"
+                      value={formData.fitnessLevel}
+                      onChange={handleInputChange}
+                      options={fitnessLevelOptions}
+                      error={errors.fitnessLevel}
+                    />
+                    
+                    <InputField
+                      label="كم يوم في الأسبوع تتمرن حالياً؟ / How many days a week do you currently exercise?"
+                      name="weeklyWorkoutDays"
                       type="number"
-                      name="targetWeight"
-                      value={formData.targetWeight}
+                      value={formData.weeklyWorkoutDays}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
-                        errors.targetWeight ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                      placeholder="65"
+                      error={errors.weeklyWorkoutDays}
+                      placeholder="مثال: 3 أيام / Example: 3 days"
+                      min="0"
+                      max="7"
                     />
-                    {errors.targetWeight && <p className="text-red-500 text-sm mt-1">{errors.targetWeight}</p>}
+                    
+                    <TextareaField
+                      label="إذا كنت تتمرن حالياً، ما هو جدولك الأسبوعي؟ الرجاء ذكر أنواع التمارين، المدة، وتكرارها / If you currently exercise, what is your weekly workout schedule? Please specify types, duration, and frequency"
+                      name="weeklySchedule"
+                      value={formData.weeklySchedule}
+                      onChange={handleInputChange}
+                      error={errors.weeklySchedule}
+                      placeholder="مثال: الأحد والثلاثاء والخميس - تمارين أوزان لمدة ساعة ونصف، الجمعة - كارديو لمدة 45 دقيقة / Example: Sunday, Tuesday, Thursday - Weight training for 1.5 hours, Friday - Cardio for 45 minutes"
+                      rows={4}
+                    />
+                  </div>
+                </div>
+
+                {/* الصحة العامة */}
+                <div>
+                  <SectionHeader title="الصحة العامة / General Health" />
+                  
+                  <div className="space-y-8">
+                    <TextareaField
+                      label="هل تعاني من مشاكل صحية؟ الرجاء ذكرها بالكامل إن وجدت / Do you suffer from any health issues? Please list them if any"
+                      name="healthIssues"
+                      value={formData.healthIssues}
+                      onChange={handleInputChange}
+                      error={errors.healthIssues}
+                      placeholder="مثال: ضغط الدم، السكري، مشاكل الغدة الدرقية، الحساسية... أو اكتب 'لا يوجد' إذا لم تكن تعاني من أي مشاكل / Example: Blood pressure, diabetes, thyroid issues, allergies... or write 'None' if you don't have any issues"
+                      rows={4}
+                    />
+                    
+                    <TextareaField
+                      label="متى قمت بآخر فحص دم؟ وماذا كانت النتائج؟ / When was your last blood test? What were the results?"
+                      name="lastBloodTest"
+                      value={formData.lastBloodTest}
+                      onChange={handleInputChange}
+                      error={errors.lastBloodTest}
+                      placeholder="مثال: منذ 6 أشهر - جميع النتائج طبيعية عدا فيتامين د منخفض / Example: 6 months ago - All results normal except low vitamin D"
+                      rows={3}
+                    />
+                    
+                    <TextareaField
+                      label="ما هي النتائج الخارجة عن المعدل الطبيعي؟ / What were the abnormal results?"
+                      name="abnormalResults"
+                      value={formData.abnormalResults}
+                      onChange={handleInputChange}
+                      error={errors.abnormalResults}
+                      placeholder="مثال: فيتامين د: 15 (المعدل الطبيعي 30-100)، الكوليسترول: 250 / Example: Vitamin D: 15 (Normal range 30-100), Cholesterol: 250"
+                      rows={3}
+                    />
+                    
+                    <TextareaField
+                      label="ما هي المكملات التي تأخذها حالياً؟ / What supplements are you currently taking?"
+                      name="currentSupplements"
+                      value={formData.currentSupplements}
+                      onChange={handleInputChange}
+                      error={errors.currentSupplements}
+                      placeholder="مثال: فيتامين د 5000 وحدة يومياً، أوميغا 3، بروتين واي... أو اكتب 'لا يوجد' / Example: Vitamin D 5000 IU daily, Omega 3, Whey protein... or write 'None'"
+                      rows={3}
+                    />
+                    
+                    <TextareaField
+                      label="هل تأخذ أدوية معينة؟ الرجاء ذكر جميعها / Are you taking any medications? Please list all"
+                      name="medications"
+                      value={formData.medications}
+                      onChange={handleInputChange}
+                      error={errors.medications}
+                      placeholder="مثال: دواء ضغط الدم، أدوية الغدة الدرقية... أو اكتب 'لا يوجد' / Example: Blood pressure medication, thyroid medication... or write 'None'"
+                      rows={3}
+                    />
+                  </div>
+                </div>
+
+                {/* نمط الحياة */}
+                <div>
+                  <SectionHeader title="نمط الحياة / Lifestyle" />
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <InputField
+                      label="كم خطوة تمشي في اليوم تقريباً؟ / Approximately how many steps do you take daily?"
+                      name="dailySteps"
+                      type="number"
+                      value={formData.dailySteps}
+                      onChange={handleInputChange}
+                      error={errors.dailySteps}
+                      placeholder="مثال: 5000 خطوة / Example: 5000 steps"
+                    />
+                    
+                    <InputField
+                      label="كم ساعة تنام؟ / How many hours do you sleep?"
+                      name="sleepHours"
+                      type="number"
+                      value={formData.sleepHours}
+                      onChange={handleInputChange}
+                      error={errors.sleepHours}
+                      placeholder="مثال: 7 ساعات / Example: 7 hours"
+                      min="4"
+                      max="12"
+                      step="0.5"
+                    />
                   </div>
                   
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      By when do you hope to achieve this? *
-                    </label>
-                    <input
-                      type="date"
-                      name="targetDate"
-                      value={formData.targetDate}
+                  <div className="space-y-8 mt-8">
+                    <TextareaField
+                      label="تجربتك السابقة مع الدايت والرياضة؟ / Your past experience with diet and exercise?"
+                      name="dietExperience"
+                      value={formData.dietExperience}
                       onChange={handleInputChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 ${
-                        errors.targetDate ? 'border-red-500' : 'border-gray-300'
-                      }`}
+                      error={errors.dietExperience}
+                      placeholder="اذكر تجاربك السابقة مع الأنظمة الغذائية والرياضة، ما نجح وما لم ينجح... / Mention your previous experiences with diets and exercise, what worked and what didn't..."
+                      rows={4}
                     />
-                    {errors.targetDate && <p className="text-red-500 text-sm mt-1">{errors.targetDate}</p>}
+                    
+                    <TextareaField
+                      label="إذا توقفت عن الدايت والرياضة، ما هو سبب توقفك؟ / If you stopped diet and exercise, what was the reason?"
+                      name="reasonForStopping"
+                      value={formData.reasonForStopping}
+                      onChange={handleInputChange}
+                      error={errors.reasonForStopping}
+                      placeholder="مثال: ضغط العمل، عدم رؤية نتائج، صعوبة الالتزام، ظروف شخصية... / Example: Work pressure, not seeing results, difficulty committing, personal circumstances..."
+                      rows={3}
+                    />
+                    
+                    <TextareaField
+                      label="ماضي الجسم؟ الرجاء ذكر كيف كان جسمك من قبل وكيف وصلت إلى هذه المرحلة؟ / Body history? Please describe how your body was before and how you reached your current state"
+                      name="bodyHistory"
+                      value={formData.bodyHistory}
+                      onChange={handleInputChange}
+                      error={errors.bodyHistory}
+                      placeholder="اذكر تاريخ وزنك وشكل جسمك، متى بدأت تلاحظ التغيير، الأسباب... / Mention your weight and body shape history, when you started noticing changes, reasons..."
+                      rows={4}
+                    />
                   </div>
                 </div>
-                
-                <div className="mt-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Why do you want to lose weight? (Check all that apply)
-                  </label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {[
-                      'Improve health',
-                      'Improve appearance', 
-                      'Increase energy',
-                      'Boost confidence',
-                      'Prepare for an event',
-                      'Doctor\'s recommendation'
-                    ].map((reason) => (
-                      <label key={reason} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          name="weightLossReasons"
-                          value={reason}
-                          checked={formData.weightLossReasons.includes(reason)}
-                          onChange={handleInputChange}
-                          className="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">{reason}</span>
-                      </label>
-                    ))}
-                    <div className="md:col-span-2">
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          name="weightLossReasons"
-                          value="other"
-                          checked={formData.weightLossReasons.includes('other')}
-                          onChange={handleInputChange}
-                          className="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">Other:</span>
-                        <input
-                          type="text"
-                          name="otherReason"
-                          value={formData.otherReason || ''}
-                          onChange={handleInputChange}
-                          className="ml-2 flex-1 px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                          placeholder="Specify other reason"
-                        />
-                      </label>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="mt-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    On a scale from 1–10, how motivated are you to lose weight? *
-                  </label>
-                  <div className="flex flex-wrap gap-3">
-                    {[1,2,3,4,5,6,7,8,9,10].map((level) => (
-                      <label key={level} className="flex items-center">
-                        <input
-                          type="radio"
-                          name="motivationLevel"
-                          value={level.toString()}
-                          checked={formData.motivationLevel === level.toString()}
-                          onChange={handleInputChange}
-                          className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
-                        />
-                        <span className="ml-1 text-sm text-gray-700">{level}</span>
-                      </label>
-                    ))}
-                  </div>
-                  {errors.motivationLevel && <p className="text-red-500 text-sm mt-1">{errors.motivationLevel}</p>}
-                </div>
-              </div>
 
-              {/* Health & Medical */}
-              <div className="mb-10">
-                <h3 className="text-2xl font-bold text-gray-900 mb-6 border-b-2 border-orange-500 pb-2">Health & Medical</h3>
-                
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Do you have any of the following conditions? (Check all that apply)
-                  </label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {[
-                      'Diabetes',
-                      'High blood pressure',
-                      'High cholesterol',
-                      'PCOS',
-                      'Thyroid issues',
-                      'Joint problems',
-                      'Sleep apnea'
-                    ].map((condition) => (
-                      <label key={condition} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          name="medicalConditions"
-                          value={condition}
-                          checked={formData.medicalConditions.includes(condition)}
-                          onChange={handleInputChange}
-                          className="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">{condition}</span>
-                      </label>
-                    ))}
-                    <div className="md:col-span-2">
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          name="medicalConditions"
-                          value="other"
-                          checked={formData.medicalConditions.includes('other')}
-                          onChange={handleInputChange}
-                          className="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">Other:</span>
-                        <input
-                          type="text"
-                          name="otherCondition"
-                          value={formData.otherCondition || ''}
-                          onChange={handleInputChange}
-                          className="ml-2 flex-1 px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                          placeholder="Specify other condition"
-                        />
-                      </label>
-                    </div>
+                {/* التغذية */}
+                <div>
+                  <SectionHeader title="التغذية / Nutrition" />
+                  
+                  <div className="space-y-8">
+                    <TextareaField
+                      label="هل هناك أطعمة لا تأكلها؟ بسبب الحساسية أو المذاق؟ / Are there any foods you don't eat? Due to allergies or taste?"
+                      name="foodRestrictions"
+                      value={formData.foodRestrictions}
+                      onChange={handleInputChange}
+                      error={errors.foodRestrictions}
+                      placeholder="مثال: حساسية من المكسرات، لا أحب السمك، نباتي... أو اكتب 'لا يوجد' / Example: Allergic to nuts, don't like fish, vegetarian... or write 'None'"
+                      rows={3}
+                    />
+                    
+                    <RadioGroup
+                      label="هل ستجهز وجباتك بنفسك أم ستشترك بمطعم؟ / Will you prepare your meals or subscribe to a meal service?"
+                      name="mealPreparation"
+                      value={formData.mealPreparation}
+                      onChange={handleInputChange}
+                      options={mealPrepOptions}
+                      error={errors.mealPreparation}
+                    />
+                    
+                    <TextareaField
+                      label="هل لديك مشاكل مع مشتقات الألبان؟ / Do you have issues with dairy products?"
+                      name="dairyIssues"
+                      value={formData.dairyIssues}
+                      onChange={handleInputChange}
+                      error={errors.dairyIssues}
+                      placeholder="مثال: عدم تحمل اللاكتوز، حساسية من الحليب، لا توجد مشاكل... / Example: Lactose intolerance, milk allergy, no issues..."
+                      rows={2}
+                    />
+                  </div>
+                </div>
+
+                {/* معلومات شخصية إضافية */}
+                <div>
+                  <SectionHeader title="معلومات إضافية / Additional Information" />
+                  
+                  <div className="space-y-8">
+                    <InputField
+                      label="الحالة الاجتماعية؟ / Marital status?"
+                      name="maritalStatus"
+                      value={formData.maritalStatus}
+                      onChange={handleInputChange}
+                      error={errors.maritalStatus}
+                      placeholder="مثال: أعزب، متزوج، مطلق... / Example: Single, Married, Divorced..."
+                    />
+                    
+                    <TextareaField
+                      label="هل لديك أي شيء تريد من أخصائي التغذية أن يعرفه؟ / Anything else you'd like the nutritionist to know?"
+                      name="additionalInfo"
+                      value={formData.additionalInfo}
+                      onChange={handleInputChange}
+                      error={errors.additionalInfo}
+                      placeholder="أي معلومات إضافية تعتقد أنها مهمة لبرنامجك الغذائي، تفضيلات خاصة، ظروف معينة... / Any additional information you think is important for your nutrition program, special preferences, specific circumstances..."
+                      rows={4}
+                    />
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
-                      Are you currently taking any medications?
-                    </label>
-                    <div className="flex items-center space-x-6 mb-3">
-                      <label className="flex items-center">
-                        <input
-                          type="radio"
-                          name="hasMedications"
-                          value="true"
-                          checked={formData.hasMedications === true}
-                          onChange={() => setFormData({...formData, hasMedications: true})}
-                          className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">Yes</span>
-                      </label>
-                      <label className="flex items-center">
-                        <input
-                          type="radio"
-                          name="hasMedications"
-                          value="false"
-                          checked={formData.hasMedications === false}
-                          onChange={() => setFormData({...formData, hasMedications: false})}
-                          className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">No</span>
-                      </label>
-                    </div>
-                    {formData.hasMedications && (
-                      <input
-                        type="text"
-                        name="medications"
-                        value={formData.medications}
+                {/* الالتزام والموافقة */}
+                <div>
+                  <SectionHeader title="الالتزام والموافقة / Commitment & Agreement" />
+                  
+                  <div className="space-y-8">
+                    <RadioGroup
+                      label="هل ستلتزم بالبرنامج المقدم من أخصائي التغذية؟ / Will you commit to the program provided by the nutritionist?"
+                      name="commitmentToProgram"
+                      value={formData.commitmentToProgram}
+                      onChange={handleInputChange}
+                      options={commitmentOptions}
+                      error={errors.commitmentToProgram}
+                      required
+                    />
+                    
+                    <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-2xl p-8 border-2 border-orange-200">
+                      <CheckboxField
+                        name="termsAccepted"
+                        checked={formData.termsAccepted}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                        placeholder="List your medications"
+                        error={errors.termsAccepted}
+                        label={
+                          <div className="text-lg leading-relaxed">
+                            <span className="font-bold text-orange-600 text-xl block mb-3">
+                              أوافق على الشروط والأحكام:
+                            </span>
+                            <p className="text-gray-700 mb-4">
+                              لقد قرأت جميع الشروط والأحكام أعلاه وأتعهد بالالتزام بها، وجميع المعلومات التي تم تزويدها من قبلي صحيحة.
+                            </p>
+                            <p className="text-gray-500 text-base italic">
+                              I have read and agree to the terms and conditions above. All provided information is correct.
+                            </p>
+                          </div>
+                        }
+                        required
                       />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Submit Button */}
+                <div className="flex justify-center pt-12">
+                  <button
+                    type="submit"
+                    className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-16 py-6 rounded-2xl font-bold text-2xl hover:from-orange-600 hover:to-red-600 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-2xl transform hover:scale-105 disabled:hover:scale-100 border-2 border-orange-400"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <div className="flex items-center">
+                        <svg className="animate-spin -ml-1 mr-4 h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        جاري الإرسال...
+                      </div>
+                    ) : (
+                      <span>
+                        إرسال الاستمارة
+                        <span className="block text-lg font-normal mt-1">Submit Form</span>
+                      </span>
                     )}
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
-                      Do you have any food allergies or intolerances?
-                    </label>
-                    <div className="flex items-center space-x-6 mb-3">
-                      <label className="flex items-center">
-                        <input
-                          type="radio"
-                          name="hasFoodAllergies"
-                          value="true"
-                          checked={formData.hasFoodAllergies === true}
-                          onChange={() => setFormData({...formData, hasFoodAllergies: true})}
-                          className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">Yes</span>
-                      </label>
-                      <label className="flex items-center">
-                        <input
-                          type="radio"
-                          name="hasFoodAllergies"
-                          value="false"
-                          checked={formData.hasFoodAllergies === false}
-                          onChange={() => setFormData({...formData, hasFoodAllergies: false})}
-                          className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">No</span>
-                      </label>
-                    </div>
-                    {formData.hasFoodAllergies && (
-                      <input
-                        type="text"
-                        name="foodAllergies"
-                        value={formData.foodAllergies}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                        placeholder="List your food allergies"
-                      />
-                    )}
-                  </div>
+                  </button>
                 </div>
-                
-                <div className="mt-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Do you have clearance from a doctor to begin a diet or fitness plan?
-                  </label>
-                  <div className="flex items-center space-x-6">
-                    {['Yes', 'No', 'Not sure'].map((option) => (
-                      <label key={option} className="flex items-center">
-                        <input
-                          type="radio"
-                          name="doctorClearance"
-                          value={option.toLowerCase()}
-                          checked={formData.doctorClearance === option.toLowerCase()}
-                          onChange={handleInputChange}
-                          className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">{option}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Current Habits */}
-              <div className="mb-10">
-                <h3 className="text-2xl font-bold text-gray-900 mb-6 border-b-2 border-orange-500 pb-2">Current Habits</h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
-                      How many meals do you eat per day?
-                    </label>
-                    <div className="flex items-center space-x-6">
-                      {['1', '2', '3', '4+'].map((option) => (
-                        <label key={option} className="flex items-center">
-                          <input
-                            type="radio"
-                            name="mealsPerDay"
-                            value={option}
-                            checked={formData.mealsPerDay === option}
-                            onChange={handleInputChange}
-                            className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
-                          />
-                          <span className="ml-2 text-sm text-gray-700">{option}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
-                      How often do you eat out or order food weekly?
-                    </label>
-                    <div className="flex flex-wrap gap-3">
-                      {['Never', '1–2 times', '3–5 times', 'Daily'].map((option) => (
-                        <label key={option} className="flex items-center">
-                          <input
-                            type="radio"
-                            name="eatingOutFrequency"
-                            value={option}
-                            checked={formData.eatingOutFrequency === option}
-                            onChange={handleInputChange}
-                            className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
-                          />
-                          <span className="ml-2 text-sm text-gray-700">{option}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
-                      Do you consume sugary drinks (soda/juice/energy drinks)?
-                    </label>
-                    <div className="flex items-center space-x-6">
-                      {['Rarely', 'Sometimes', 'Daily'].map((option) => (
-                        <label key={option} className="flex items-center">
-                          <input
-                            type="radio"
-                            name="sugaryDrinks"
-                            value={option}
-                            checked={formData.sugaryDrinks === option}
-                            onChange={handleInputChange}
-                            className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
-                          />
-                          <span className="ml-2 text-sm text-gray-700">{option}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
-                      On average, how much water do you drink per day?
-                    </label>
-                    <div className="flex flex-wrap gap-3">
-                      {['< 1L', '1–2L', '2–3L', '3+L'].map((option) => (
-                        <label key={option} className="flex items-center">
-                          <input
-                            type="radio"
-                            name="waterIntake"
-                            value={option}
-                            checked={formData.waterIntake === option}
-                            onChange={handleInputChange}
-                            className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
-                          />
-                          <span className="ml-2 text-sm text-gray-700">{option}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
-                      How many hours of sleep do you get on average?
-                    </label>
-                    <div className="flex flex-wrap gap-3">
-                      {['< 5', '5–6', '7–8', '8+'].map((option) => (
-                        <label key={option} className="flex items-center">
-                          <input
-                            type="radio"
-                            name="sleepHours"
-                            value={option}
-                            checked={formData.sleepHours === option}
-                            onChange={handleInputChange}
-                            className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
-                          />
-                          <span className="ml-2 text-sm text-gray-700">{option}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
-                      How often do you exercise per week?
-                    </label>
-                    <div className="flex flex-wrap gap-3">
-                      {['Never', '1–2x', '3–4x', '5+'].map((option) => (
-                        <label key={option} className="flex items-center">
-                          <input
-                            type="radio"
-                            name="exerciseFrequency"
-                            value={option}
-                            checked={formData.exerciseFrequency === option}
-                            onChange={handleInputChange}
-                            className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
-                          />
-                          <span className="ml-2 text-sm text-gray-700">{option}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="mt-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    What type of exercise do you currently do (if any)?
-                  </label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {[
-                      'Walking',
-                      'Gym',
-                      'Home workouts',
-                      'Swimming',
-                      'Cycling'
-                    ].map((type) => (
-                      <label key={type} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          name="exerciseTypes"
-                          value={type}
-                          checked={formData.exerciseTypes.includes(type)}
-                          onChange={handleInputChange}
-                          className="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">{type}</span>
-                      </label>
-                    ))}
-                    <div className="md:col-span-2">
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          name="exerciseTypes"
-                          value="other"
-                          checked={formData.exerciseTypes.includes('other')}
-                          onChange={handleInputChange}
-                          className="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">Other:</span>
-                        <input
-                          type="text"
-                          name="otherExercise"
-                          value={formData.otherExercise || ''}
-                          onChange={handleInputChange}
-                          className="ml-2 flex-1 px-3 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                          placeholder="Specify other exercise"
-                        />
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Preferences & Support */}
-              <div className="mb-10">
-                <h3 className="text-2xl font-bold text-gray-900 mb-6 border-b-2 border-orange-500 pb-2">Preferences & Support</h3>
-                
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Do you prefer:
-                  </label>
-                  <div className="flex flex-wrap gap-3">
-                    {[
-                      'A structured meal plan',
-                      'Flexible eating with guidance',
-                      'Meal delivery'
-                    ].map((option) => (
-                      <label key={option} className="flex items-center">
-                        <input
-                          type="radio"
-                          name="mealPlanPreference"
-                          value={option}
-                          checked={formData.mealPlanPreference === option}
-                          onChange={handleInputChange}
-                          className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">{option}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-                
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Are you interested in:
-                  </label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {[
-                      'Personal training',
-                      'Group training',
-                      'Online training',
-                      'Nutrition consultation only'
-                    ].map((option) => (
-                      <label key={option} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          name="trainingInterest"
-                          value={option}
-                          checked={formData.trainingInterest.includes(option)}
-                          onChange={handleInputChange}
-                          className="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">{option}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-                
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Do you have any religious or dietary restrictions?
-                  </label>
-                  <div className="flex items-center space-x-6 mb-3">
-                    <label className="flex items-center">
-                      <input
-                        type="radio"
-                        name="hasDietaryRestrictions"
-                        value="true"
-                        checked={formData.hasDietaryRestrictions === true}
-                        onChange={() => setFormData({...formData, hasDietaryRestrictions: true})}
-                        className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
-                      />
-                      <span className="ml-2 text-sm text-gray-700">Yes</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input
-                        type="radio"
-                        name="hasDietaryRestrictions"
-                        value="false"
-                        checked={formData.hasDietaryRestrictions === false}
-                        onChange={() => setFormData({...formData, hasDietaryRestrictions: false})}
-                        className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
-                      />
-                      <span className="ml-2 text-sm text-gray-700">No</span>
-                    </label>
-                  </div>
-                  {formData.hasDietaryRestrictions && (
-                    <input
-                      type="text"
-                      name="dietaryRestrictions"
-                      value={formData.dietaryRestrictions}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                      placeholder="Specify your dietary restrictions"
-                    />
-                  )}
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
-                      Would you prefer a coach of a specific gender?
-                    </label>
-                    <div className="flex items-center space-x-6">
-                      {['Male', 'Female', 'No preference'].map((option) => (
-                        <label key={option} className="flex items-center">
-                          <input
-                            type="radio"
-                            name="coachGenderPreference"
-                            value={option}
-                            checked={formData.coachGenderPreference === option}
-                            onChange={handleInputChange}
-                            className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
-                          />
-                          <span className="ml-2 text-sm text-gray-700">{option}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
-                      How much support do you want from your coach?
-                    </label>
-                    <div className="flex flex-wrap gap-3">
-                      {['Daily check-ins', 'Weekly check-ins', 'Monthly', 'Only as needed'].map((option) => (
-                        <label key={option} className="flex items-center">
-                          <input
-                            type="radio"
-                            name="supportLevel"
-                            value={option}
-                            checked={formData.supportLevel === option}
-                            onChange={handleInputChange}
-                            className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
-                          />
-                          <span className="ml-2 text-sm text-gray-700">{option}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Lifestyle & Readiness */}
-              <div className="mb-10">
-                <h3 className="text-2xl font-bold text-gray-900 mb-6 border-b-2 border-orange-500 pb-2">Lifestyle & Readiness</h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
-                      Do you feel stressed regularly?
-                    </label>
-                    <div className="flex items-center space-x-6">
-                      {['Yes', 'No'].map((option) => (
-                        <label key={option} className="flex items-center">
-                          <input
-                            type="radio"
-                            name="stressLevel"
-                            value={option}
-                            checked={formData.stressLevel === option}
-                            onChange={handleInputChange}
-                            className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
-                          />
-                          <span className="ml-2 text-sm text-gray-700">{option}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
-                      Do you smoke or vape?
-                    </label>
-                    <div className="flex items-center space-x-6">
-                      {['Yes', 'No'].map((option) => (
-                        <label key={option} className="flex items-center">
-                          <input
-                            type="radio"
-                            name="smokingStatus"
-                            value={option}
-                            checked={formData.smokingStatus === option}
-                            onChange={handleInputChange}
-                            className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
-                          />
-                          <span className="ml-2 text-sm text-gray-700">{option}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
-                      Do you drink alcohol?
-                    </label>
-                    <div className="flex items-center space-x-6">
-                      {['Yes', 'No', 'Occasionally'].map((option) => (
-                        <label key={option} className="flex items-center">
-                          <input
-                            type="radio"
-                            name="alcoholConsumption"
-                            value={option}
-                            checked={formData.alcoholConsumption === option}
-                            onChange={handleInputChange}
-                            className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
-                          />
-                          <span className="ml-2 text-sm text-gray-700">{option}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
-                      Do you have a support system (friends/family)?
-                    </label>
-                    <div className="flex items-center space-x-6">
-                      {['Yes', 'No'].map((option) => (
-                        <label key={option} className="flex items-center">
-                          <input
-                            type="radio"
-                            name="hasSupport"
-                            value={option}
-                            checked={formData.hasSupport === option}
-                            onChange={handleInputChange}
-                            className="w-4 h-4 text-orange-500 border-gray-300 focus:ring-orange-500"
-                          />
-                          <span className="ml-2 text-sm text-gray-700">{option}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="mt-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    What's your biggest challenge when trying to lose weight?
-                  </label>
-                  <textarea
-                    name="biggestChallenge"
-                    value={formData.biggestChallenge}
-                    onChange={handleInputChange}
-                    rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    placeholder="Describe your biggest challenge..."
-                  />
-                </div>
-                
-                <div className="mt-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    What has worked for you in the past, if anything?
-                  </label>
-                  <textarea
-                    name="pastSuccesses"
-                    value={formData.pastSuccesses}
-                    onChange={handleInputChange}
-                    rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    placeholder="Describe what has worked for you before..."
-                  />
-                </div>
-              </div>
-
-              {/* Submit Button */}
-              <div className="mt-8 flex justify-center">
-                <button
-                  type="submit"
-                  className="bg-orange-500 text-white px-12 py-4 rounded-lg font-medium text-lg hover:bg-orange-600 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? 'Submitting Survey...' : 'Submit Survey'}
-                </button>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
         </div>
       </section>
