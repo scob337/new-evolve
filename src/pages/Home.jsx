@@ -36,22 +36,48 @@ const Home = () => {
     setIsSubmitting(true);
     setSubmitMessage('');
 
+    // التحقق من صحة البيانات
+    const errors = {};
+    if (!contactForm.name.trim()) {
+      errors.name = 'الاسم مطلوب';
+    }
+    if (!contactForm.email.trim()) {
+      errors.email = 'البريد الإلكتروني مطلوب';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactForm.email)) {
+      errors.email = 'يرجى إدخال بريد إلكتروني صحيح';
+    }
+    if (!contactForm.phone.trim()) {
+      errors.phone = 'رقم الهاتف مطلوب';
+    }
+    if (!contactForm.message.trim()) {
+      errors.message = 'الرسالة مطلوبة';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setSubmitMessage('يرجى ملء جميع الحقول المطلوبة بشكل صحيح.');
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
-      const response = await fetch('https://evolvetheapp.com/api/contact', {
-        method: 'POST',
+      const response = await fetch("https://formsubmit.co/ajax/f.alamoudi@evolvetheapp.com", {
+        method: "POST",
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
         body: JSON.stringify({
           ...contactForm,
-          subject: 'رسالة من الصفحة الرئيسية'
-        }),
+          _subject: "رسالة جديدة من موقع EVOLVE - الصفحة الرئيسية",
+          _template: "table",
+          _captcha: "false"
+        })
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        setSubmitMessage('تم إرسال رسالتك بنجاح! سنتواصل معك قريباً.');
+        setSubmitMessage('تم إرسال رسالتك بنجاح! شكراً لتواصلك معنا، سنرد عليك في أقرب وقت ممكن.');
         setContactForm({
           name: '',
           email: '',
@@ -63,7 +89,7 @@ const Home = () => {
       }
     } catch (error) {
       console.error('Contact form error:', error);
-      setSubmitMessage('حدث خطأ أثناء إرسال رسالتك. يرجى المحاولة مرة أخرى.');
+      setSubmitMessage('حدث خطأ أثناء إرسال رسالتك. يرجى المحاولة مرة أخرى أو التواصل معنا مباشرة.');
     } finally {
       setIsSubmitting(false);
     }

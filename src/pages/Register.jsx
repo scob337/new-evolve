@@ -271,30 +271,40 @@ const Register = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-red-50" dir="rtl">
       {/* Hero Section */}
-      <section className="py-20 bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 relative overflow-hidden">
-        <div className="absolute inset-0 bg-black opacity-10"></div>
-        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center text-white">
-            <h1 className="text-6xl font-bold mb-8 drop-shadow-2xl leading-tight">
-              استمارة التغذية الشاملة
-              <span className="block text-4xl mt-4 text-orange-100">
-                Comprehensive Nutrition Form
-              </span>
-            </h1>
-            <p className="text-2xl text-orange-100 leading-relaxed max-w-4xl mx-auto">
-              ابدأ رحلتك المخصصة في التغذية الصحية مع EVOLVE - برنامج غذائي مصمم خصيصاً لك
-            </p>
-            <div className="mt-8 flex justify-center">
-              <div className="bg-white bg-opacity-20 rounded-2xl px-8 py-4 backdrop-blur-sm">
-                <p className="text-lg font-semibold">⭐ خدمة مميزة للعملاء المتميزين</p>
-              </div>
-            </div>
-          </div>
+<section className="py-20 bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 relative overflow-hidden">
+  <div className="absolute inset-0 bg-black opacity-10"></div>
+  <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="text-center text-white space-y-8">
+      
+      <h1 className="text-5xl sm:text-6xl font-bold drop-shadow-2xl leading-tight">
+        <div className="flex flex-col  justify-center items-center gap-4">
+          <span>استمارة التغذية الشاملة</span> 
+          <span className="text-3xl sm:text-4xl text-orange-100">Comprehensive Nutrition Form</span>
         </div>
-      </section>
+      </h1>
+      
+      <p className="text-xl sm:text-2xl text-orange-100 leading-relaxed max-w-4xl mx-auto">
+        <span className="block">ابدأ رحلتك المخصصة في التغذية الصحية مع EVOLVE</span>
+        <span className="block">Start your personalized healthy nutrition journey with EVOLVE</span>
+        <span className="block mt-2">برنامج غذائي مصمم خصيصاً لك</span>
+        <span className="block">A nutrition program tailored specifically for you</span>
+      </p>
+      
+      <div className="mt-8 flex justify-center">
+        <div className="bg-white bg-opacity-20 rounded-2xl px-8 py-4 backdrop-blur-sm">
+          <p className="text-lg font-semibold">
+            خدمة مميزة للعملاء المتميزين / Premium service for distinguished clients
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
 
       {/* Registration Form */}
-      <section className="py-20">
+      <section >
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-orange-100">
             <div className="p-8 md:p-16">
