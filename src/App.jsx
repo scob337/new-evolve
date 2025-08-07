@@ -8,7 +8,6 @@ import Footer from './components/Footer';
 import Home from './pages/Home';
 import About from './pages/About';
 import Services from './pages/Services';
-import { Menu } from '@headlessui/react';
 import Contact from './pages/Contact';
 import Dashboard from './pages/Dashboard';
 import MealDetail from './pages/MealDetail';

@@ -6,6 +6,7 @@ import { useState } from 'react'; // إضافة useState
 import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';
+import 'swiper/css/pagination';
 
 const Home = () => {
   const { t } = useTranslation();
