@@ -615,7 +615,6 @@ header .container {
 .contact-form h3 {
     font-size: 1.8rem;
     margin-bottom: 20px;
-    color: var(--white-color) !important;
 }
 
 .form-row {
@@ -642,7 +641,6 @@ header .container {
     background: rgba(0, 0, 0, 0.5);
     border: 1px solid #333;
     border-radius: var(--border-radius-sm);
-    color: var(--white-color);
     font-size: 1rem;
     transition: all var(--transition-speed);
 }
