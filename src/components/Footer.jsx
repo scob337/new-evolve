@@ -32,11 +32,11 @@ const Footer = ({ currentLanguage }) => {
                     <h3 className="text-lg font-semibold mb-4">{t('quick_links')}</h3>
                     <ul className="space-y-2">
                         <li><Link to="/" className="text-gray-400 hover:text-white transition-colors">{t('home')}</Link></li>
-                        <li><Link to="/about" className="text-gray-400 hover:text-white transition-colors">{t('about')}</Link></li>
-                        <li><Link to="/services" className="text-gray-400 hover:text-white transition-colors">{t('services')}</Link></li>
+                        {/* <li><Link to="/about" className="text-gray-400 hover:text-white transition-colors">{t('about')}</Link></li> */}
+                        {/* <li><Link to="/services" className="text-gray-400 hover:text-white transition-colors">{t('services')}</Link></li> */}
                         <li><Link to="/menu" className="text-gray-400 hover:text-white transition-colors">{t('menu')}</Link></li>
-                        <li><Link to="/contact" className="text-gray-400 hover:text-white transition-colors">{t('contact')}</Link></li>
-                        <li><Link to="/register" className="text-gray-400 hover:text-white transition-colors">{t('register')}</Link></li>
+                        {/* <li><Link to="/contact" className="text-gray-400 hover:text-white transition-colors">{t('contact')}</Link></li> */}
+                        {/* <li><Link to="/register" className="text-gray-400 hover:text-white transition-colors">{t('register')}</Link></li> */}
                     </ul>
                 </div>
 
