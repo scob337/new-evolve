@@ -478,6 +478,7 @@ const Home = () => {
                   <textarea 
                     id="message" 
                     name="message" 
+                    style={{color:"black"}}
                     value={contactForm.message}
                     onChange={handleContactInputChange}
                     placeholder={t('enter_message')} 
