@@ -6,14 +6,12 @@ import 'aos/dist/aos.css';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Home from './pages/Home';
-import About from './pages/About';
-import Services from './pages/Services';
-import Contact from './pages/Contact';
 import Dashboard from './pages/Dashboard';
 import MealDetail from './pages/MealDetail';
 import MenuP from './pages/Menu';
 import Login from './pages/Login';
 import ProtectedRoute from './components/ProtectedRoute'; // استيراد مكون ProtectedRoute
+import Register from './pages/Register';
 
 function App() {
   const { i18n } = useTranslation();
@@ -77,11 +75,9 @@ function App() {
         <main>
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/services" element={<Services />} />
             <Route path="/menu" element={<MenuP />} />
-            <Route path="/contact" element={<Contact />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />
