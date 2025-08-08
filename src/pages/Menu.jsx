@@ -7,6 +7,7 @@ const MenuP = () => {
   const [meals, setMeals] = useState([]);
   const [filteredMeals, setFilteredMeals] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all'); // إضافة state للكاتيجوري
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -37,6 +38,18 @@ const MenuP = () => {
     loadMeals();
   }, []);
 
+  
+const getCategoryName = (category) => {
+  const categoryTranslations = {
+    'all': t('All') || 'جميع الوجبات',
+    'breakfast': t('breakfast') || 'إفطار',
+    'lunch': t('lunch') || 'غداء', 
+    'dinner': t('dinner') || 'عشاء',
+    'desserts': t('desserts') || 'حلويات',
+    'salads': t('salads') || 'سلطات'
+  };
+  return categoryTranslations[category] || category;
+};
   // Sample data fallback
   const getSampleMeals = () => {
     const currentLang = i18n.language || 'en';
@@ -58,10 +71,16 @@ const MenuP = () => {
   };
 
   // Enhanced filtering - Search only
+  // تحديث دالة الفلترة لتشمل الكاتيجوري
   const processedMeals = useMemo(() => {
     let filtered = meals;
 
-    // Filter by search term only
+    // Filter by category
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(meal => meal.category === selectedCategory);
+    }
+
+    // Filter by search term
     if (searchTerm) {
       filtered = filtered.filter(meal => {
         const name = typeof meal.name === 'object' 
@@ -81,7 +100,7 @@ const MenuP = () => {
     }
 
     return filtered;
-  }, [meals, searchTerm, i18n.language]);
+  }, [meals, searchTerm, selectedCategory, i18n.language]); // إضافة selectedCategory للـ dependencies
 
   useEffect(() => {
     setFilteredMeals(processedMeals);
@@ -224,7 +243,7 @@ const MenuP = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50">
-      {/* Header Section with Search Only */}
+      {/* Header Section with Search and Filter */}
       <section className="pt-24 pb-8">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center mb-8">
@@ -236,6 +255,23 @@ const MenuP = () => {
             </p>
             
 
+
+            {/* Category Filter */}
+            <div className="flex flex-wrap justify-center gap-3 mb-8">
+              {['all', 'breakfast', 'lunch', 'dinner', 'desserts', 'salads'].map(category => (
+                <button
+                  key={category}
+                  onClick={() => setSelectedCategory(category)}
+                  className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 ${
+                    selectedCategory === category
+                      ? 'bg-orange-500 text-white shadow-lg'
+                      : 'bg-white/80 text-gray-700 hover:bg-orange-100 border border-orange-200'
+                  }`}
+                >
+                  {getCategoryName(category)}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -243,7 +279,16 @@ const MenuP = () => {
       {/* Results Section */}
       <section className="pb-12">
         <div className="container mx-auto px-4">
-
+          {/* Results Count */}
+          <div className="text-center mb-6">
+            <p className="text-gray-600">
+              {filteredMeals.length > 0 
+                ? `تم العثور على ${filteredMeals.length} وجبة`
+                : 'لم يتم العثور على وجبات'
+              }
+              {selectedCategory !== 'all' && ` في فئة ${getCategoryName(selectedCategory)}`}
+            </p>
+          </div>
           
           {/* Meals Grid */}
           {filteredMeals.length === 0 ? (
@@ -253,14 +298,22 @@ const MenuP = () => {
                 {t('no_meals_found') || 'لم يتم العثور على وجبات'}
               </h3>
               <p className="text-gray-500 mb-8 max-w-md mx-auto">
-                {t('try_different_search') || 'جرب البحث بكلمات مختلفة'}
+                {t('try_different_search') || 'جرب البحث بكلمات مختلفة أو اختر فئة أخرى'}
               </p>
-              <button
-                onClick={() => setSearchTerm('')}
-                className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105"
-              >
-                {t('clear_search') || 'مسح البحث'}
-              </button>
+              <div className="flex gap-4 justify-center">
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105"
+                >
+                  {t('clear_search') || 'مسح البحث'}
+                </button>
+                <button
+                  onClick={() => setSelectedCategory('all')}
+                  className="bg-gray-500 hover:bg-gray-600 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105"
+                >
+                  عرض جميع الوجبات
+                </button>
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
@@ -274,5 +327,6 @@ const MenuP = () => {
     </div>
   );
 };
+
 
 export default MenuP;

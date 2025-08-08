@@ -137,7 +137,6 @@ app.use('*', (req, res) => {
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 الخادم يعمل على المنفذ ${PORT}`);
-  console.log(`🌐 CORS معطل - يمكن الوصول من أي مكان`);
   console.log(`📡 API متاح على: http://localhost:${PORT}`);
 });
 

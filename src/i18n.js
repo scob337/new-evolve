@@ -261,11 +261,19 @@ const enTranslations = {
   error_deleting_meal: 'Error deleting meal',
   confirm_delete_meal: 'Are you sure you want to delete this meal?',
   add_meal:'Add',
+    Breakfast:'Breakfast',
+  Lunch:'Lunch',
+  Dinner:'Dinner',
+  All:"All"
 };
 
 // في القسم العربي (arTranslations)
 const arTranslations = {
   // Navigation
+  All:'الكل',
+  Breakfast:'إفطار',
+  Lunch:'غداء',
+  Dinner:'عشاء',
   add_meal:'إضافة',
   update_meal:'تحديث' ,
   home: 'الرئيسية',

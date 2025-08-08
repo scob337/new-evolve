@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import jsPDF from 'jspdf';
 import QRCode from 'qrcode';
-import html2canvas from 'html2canvas'; // إضافة هذا السطر
+import html2canvas from 'html2canvas';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 
@@ -13,6 +13,14 @@ const Dashboard = () => {
   const [meals, setMeals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // إضافة حالات التحميل والأخطاء للعمليات
+  const [addingMeal, setAddingMeal] = useState(false);
+  const [updatingMeal, setUpdatingMeal] = useState(false);
+  const [deletingMeal, setDeletingMeal] = useState(null); // ID الوجبة التي يتم حذفها
+  const [operationError, setOperationError] = useState(null);
+  const [operationSuccess, setOperationSuccess] = useState(null);
+  
   const [showAddMeal, setShowAddMeal] = useState(false);
   const [showEditMeal, setShowEditMeal] = useState(false);
   const [editingMeal, setEditingMeal] = useState(null);
@@ -157,6 +165,10 @@ const Dashboard = () => {
   const handleAddMeal = async (e) => {
     e.preventDefault();
     
+    setAddingMeal(true);
+    setOperationError(null);
+    setOperationSuccess(null);
+    
     try {
       const formData = new FormData();
       
@@ -176,7 +188,6 @@ const Dashboard = () => {
       
       // إضافة المكونات
       if (newMeal.ingredients) {
-        // تحويل المكونات إلى تنسيق JSON
         const ingredientsArray = newMeal.ingredients.split(/[,._\-\s]+/).map(item => item.trim()).filter(item => item);
         const ingredientsJson = JSON.stringify({
           ar: ingredientsArray,
@@ -221,14 +232,21 @@ const Dashboard = () => {
         });
         
         setShowAddMeal(false);
+        setOperationSuccess(t('meal_added_successfully') || 'تم إضافة الوجبة بنجاح');
         
-        alert(t('meal_added_successfully') || 'تم إضافة الوجبة بنجاح');
+        // إخفاء رسالة النجاح بعد 3 ثوان
+        setTimeout(() => setOperationSuccess(null), 3000);
       } else {
         throw new Error(data.message || 'فشل في إضافة الوجبة');
       }
     } catch (error) {
       console.error('Error adding meal:', error);
-      alert(t('error_adding_meal') || 'حدث خطأ أثناء إضافة الوجبة');
+      setOperationError(t('error_adding_meal') || 'حدث خطأ أثناء إضافة الوجبة');
+      
+      // إخفاء رسالة الخطأ بعد 5 ثوان
+      setTimeout(() => setOperationError(null), 5000);
+    } finally {
+      setAddingMeal(false);
     }
   };
 
@@ -254,6 +272,10 @@ const Dashboard = () => {
   const handleUpdateMeal = async (e) => {
     e.preventDefault();
     
+    setUpdatingMeal(true);
+    setOperationError(null);
+    setOperationSuccess(null);
+    
     try {
       const formData = new FormData();
       
@@ -273,7 +295,6 @@ const Dashboard = () => {
       
       // إضافة المكونات
       if (editingMeal.ingredients) {
-        // تحويل المكونات إلى تنسيق JSON
         const ingredientsArray = editingMeal.ingredients.split(/[,._\-\s]+/).map(item => item.trim()).filter(item => item);
         const ingredientsJson = JSON.stringify({
           ar: ingredientsArray,
@@ -302,19 +323,30 @@ const Dashboard = () => {
         
         setShowEditMeal(false);
         setEditingMeal(null);
+        setOperationSuccess(t('meal_updated_successfully') || 'تم تحديث الوجبة بنجاح');
         
-        alert(t('meal_updated_successfully') || 'تم تحديث الوجبة بنجاح');
+        // إخفاء رسالة النجاح بعد 3 ثوان
+        setTimeout(() => setOperationSuccess(null), 3000);
       } else {
         throw new Error(data.message || 'فشل في تحديث الوجبة');
       }
     } catch (error) {
       console.error('Error updating meal:', error);
-      alert(t('error_updating_meal') || 'حدث خطأ أثناء تحديث الوجبة');
+      setOperationError(t('error_updating_meal') || 'حدث خطأ أثناء تحديث الوجبة');
+      
+      // إخفاء رسالة الخطأ بعد 5 ثوان
+      setTimeout(() => setOperationError(null), 5000);
+    } finally {
+      setUpdatingMeal(false);
     }
   };
 
   const handleDeleteMeal = async (mealId) => {
     if (window.confirm(t('confirm_delete_meal') || 'هل أنت متأكد من حذف هذه الوجبة؟')) {
+      setDeletingMeal(mealId);
+      setOperationError(null);
+      setOperationSuccess(null);
+      
       try {
         const response = await fetch(`https://evolvetheapp.com/api/meals/${mealId}`, {
           method: 'DELETE',
@@ -325,14 +357,21 @@ const Dashboard = () => {
         if (data.success) {
           // Reload meals from API
           await loadMealsFromAPI();
+          setOperationSuccess(t('meal_deleted_successfully') || 'تم حذف الوجبة بنجاح');
           
-          alert(t('meal_deleted_successfully') || 'تم حذف الوجبة بنجاح');
+          // إخفاء رسالة النجاح بعد 3 ثوان
+          setTimeout(() => setOperationSuccess(null), 3000);
         } else {
           throw new Error(data.message || 'فشل في حذف الوجبة');
         }
       } catch (error) {
         console.error('Error deleting meal:', error);
-        alert(t('error_deleting_meal') || 'حدث خطأ أثناء حذف الوجبة');
+        setOperationError(t('error_deleting_meal') || 'حدث خطأ أثناء حذف الوجبة');
+        
+        // إخفاء رسالة الخطأ بعد 5 ثوان
+        setTimeout(() => setOperationError(null), 5000);
+      } finally {
+        setDeletingMeal(null);
       }
     }
   };
@@ -374,7 +413,11 @@ const Dashboard = () => {
     { value: 'salads', label: t('salads') },
     { value: 'bowls', label: t('bowls') },
     { value: 'proteins', label: t('proteins') },
-    { value: 'desserts', label: t('desserts') }
+    { value: 'desserts', label: t('desserts') },
+    
+    { value: 'breakfast', label: t('Breakfast') },
+    { value: 'lunch', label: t('Lunch') },
+    { value: 'dinner', label: t('Dinner') },
   ];
 
   return (
@@ -422,6 +465,25 @@ const Dashboard = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* رسائل النجاح والخطأ */}
+        {operationSuccess && (
+          <div className="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center">
+            <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+            {operationSuccess}
+          </div>
+        )}
+        
+        {operationError && (
+          <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center">
+            <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+            </svg>
+            {operationError}
+          </div>
+        )}
+
         {/* Meals Management */}
         <div className="bg-white rounded-lg shadow-lg">
           <div className="p-6 border-b border-gray-200">
@@ -515,21 +577,44 @@ const Dashboard = () => {
                       <div className="flex flex-wrap gap-2 rtl:space-x-reverse">
                         <button
                           onClick={() => handleEditMeal(meal)}
-                          className="px-3 py-1 bg-blue-50 border border-blue-300 rounded-md text-blue-600 hover:bg-blue-100 transition-colors duration-200"
+                          disabled={updatingMeal || deletingMeal === meal.id}
+                          className="px-3 py-1 bg-blue-50 border border-blue-300 rounded-md text-blue-600 hover:bg-blue-100 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          {t('edit')}
+                          {updatingMeal ? (
+                            <div className="flex items-center">
+                              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              {t('updating')}
+                            </div>
+                          ) : (
+                            t('edit')
+                          )}
                         </button>
 
                         <button
                           onClick={() => handleDeleteMeal(meal.id)}
-                          className="px-3 py-1 bg-red-50 border border-red-300 rounded-md text-red-600 hover:bg-red-100 transition-colors duration-200"
+                          disabled={deletingMeal === meal.id || updatingMeal}
+                          className="px-3 py-1 bg-red-50 border border-red-300 rounded-md text-red-600 hover:bg-red-100 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          {t('delete')}
+                          {deletingMeal === meal.id ? (
+                            <div className="flex items-center">
+                              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              {t('deleting')}
+                            </div>
+                          ) : (
+                            t('delete')
+                          )}
                         </button>
                         
                         <button
                           onClick={() => handlePrintQR(meal)}
-                          className="px-3 py-1 bg-green-50 border border-green-300 rounded-md text-green-600 hover:bg-green-100 transition-colors duration-200"
+                          disabled={deletingMeal === meal.id || updatingMeal}
+                          className="px-3 py-1 bg-green-50 border border-green-300 rounded-md text-green-600 hover:bg-green-100 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                           title="طباعة QR Code"
                         >
                           QR
@@ -736,9 +821,20 @@ const Dashboard = () => {
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 transition-all duration-300"
+                    disabled={addingMeal}
+                    className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-3 px-4 rounded-lg hover:from-orange-600 hover:to-red-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {t('add_meal')}
+                    {addingMeal ? (
+                      <div className="flex items-center justify-center">
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        {t('adding_meal') || 'جاري الإضافة...'}
+                      </div>
+                    ) : (
+                      t('add_meal')
+                    )}
                   </button>
                 </div>
               </form>
@@ -957,9 +1053,20 @@ const Dashboard = () => {
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-300"
+                    disabled={updatingMeal}
+                    className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-3 px-4 rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {t('update_meal')}
+                    {updatingMeal ? (
+                      <div className="flex items-center justify-center">
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        {t('updating_meal') || 'جاري التحديث...'}
+                      </div>
+                    ) : (
+                      t('update_meal')
+                    )}
                   </button>
                 </div>
               </form>

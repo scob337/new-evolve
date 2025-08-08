@@ -5,6 +5,7 @@ import fs from 'fs';
 import { body, validationResult } from 'express-validator';
 import { fileURLToPath } from 'url';
 
+const path = require('path');
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -44,7 +45,7 @@ const upload = multer({
 });
 
 // الحصول على جميع الوجبات (عام)
-router.get('/', async (req, res) => {
+router.get('/meals', async (req, res) => {
   try {
     const { category, search, sortBy = 'name', page = 1, limit = 20 } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
