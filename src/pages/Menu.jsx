@@ -16,7 +16,7 @@ const MenuP = () => {
       try {
         setLoading(true);
         setError(null);
-        const response = await fetch('http://localhost:5001/api/meals');
+        const response = await fetch('https://evolvetheapp.com/api/meals');
         const data = await response.json();
         console.log(data.data.meals)
         if (data.success) {
@@ -92,7 +92,7 @@ const MenuP = () => {
   const getImageUrl = (imagePath) => {
     if (!imagePath) return '/images/default-meal.jpg';
     if (imagePath.startsWith('http')) return imagePath;
-    return `http://localhost:5001${imagePath}`;
+    return `https://evolvetheapp.com${imagePath}`;
   };
   
   const MealCard = ({ meal }) => {

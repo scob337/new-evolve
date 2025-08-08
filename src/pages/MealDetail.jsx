@@ -118,7 +118,7 @@ const MealDetail = () => {
       
       // محاولة تحميل البيانات من الـ API أولاً
       try {
-        const response = await fetch(`http://localhost:5001/api/meals/${id}`);
+        const response = await fetch(`https://evolvetheapp.com/api/meals/${id}`);
         
         if (response.ok) {
           const data = await response.json();
@@ -452,7 +452,7 @@ export default MealDetail;
 const getImageUrl = (imagePath) => {
   if (!imagePath) return '/images/default-meal.jpg';
   if (imagePath.startsWith('http')) return imagePath;
-  return `http://localhost:5001${imagePath}`;
+  return `https://evolvetheapp.com${imagePath}`;
 };
 
 

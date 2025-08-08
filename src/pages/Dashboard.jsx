@@ -124,7 +124,7 @@ const Dashboard = () => {
       setLoading(true);
       setError(null);
       
-      const response = await fetch('http://localhost:5001/api/meals');
+      const response = await fetch('https://evolvetheapp.com/api/meals');
       const data = await response.json();
       console.log(data)
       if (data.success) {
@@ -192,7 +192,7 @@ const Dashboard = () => {
         formData.append('image', newMeal.image);
       }
       
-      const response = await fetch('http://localhost:5001/api/meals', {
+      const response = await fetch('https://evolvetheapp.com/api/meals', {
         method: 'POST',
         body: formData
       });
@@ -289,7 +289,7 @@ const Dashboard = () => {
         formData.append('image', editingMeal.image);
       }
       
-      const response = await fetch(`http://localhost:5001/api/meals/${editingMeal.id}`, {
+      const response = await fetch(`https://evolvetheapp.com/api/meals/${editingMeal.id}`, {
         method: 'PUT',
         body: formData
       });
@@ -316,7 +316,7 @@ const Dashboard = () => {
   const handleDeleteMeal = async (mealId) => {
     if (window.confirm(t('confirm_delete_meal') || 'هل أنت متأكد من حذف هذه الوجبة؟')) {
       try {
-        const response = await fetch(`http://localhost:5001/api/meals/${mealId}`, {
+        const response = await fetch(`https://evolvetheapp.com/api/meals/${mealId}`, {
           method: 'DELETE',
         });
         
@@ -979,6 +979,6 @@ export default Dashboard;
 const getImageUrl = (imagePath) => {
   if (!imagePath) return '/images/default-meal.jpg';
   if (imagePath.startsWith('http')) return imagePath;
-  return `http://localhost:5001${imagePath}`;
+  return `https://evolvetheapp.com${imagePath}`;
 };
 
