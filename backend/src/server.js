@@ -58,7 +58,14 @@ app.use((req, res, next) => {
 
 // إعداد CORS للسماح بالوصول من أي مكان بدون قيود
 app.use(cors({
-  origin: ['https://evolvetheapp.com', 'https://www.evolvetheapp.com','*'],
+  origin: ['https://evolvetheapp.com',
+     'http://www.evolvetheapp.com','*'  , 'http://localhost:3000'
+    , 'http://localhost:5173' , 'http://localhost:5174'
+
+
+    ],
+
+
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
 }));
