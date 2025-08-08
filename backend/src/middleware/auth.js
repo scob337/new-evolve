@@ -1,8 +1,6 @@
-const jwt = require('jsonwebtoken');
-// const { PrismaClient } = require('@prisma/client');
-// const prisma = new PrismaClient();
+import jwt from 'jsonwebtoken';
 
-const authenticateToken = async (req, res, next) => {
+export const authenticateToken = async (req, res, next) => {
   try {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
@@ -25,11 +23,9 @@ const authenticateToken = async (req, res, next) => {
   }
 };
 
-const requireAdmin = (req, res, next) => {
+export const requireAdmin = (req, res, next) => {
   next(); // مؤقتاً بدون التحقق من الصلاحيات
 };
 
-module.exports = {
-  authenticateToken,
-  requireAdmin
-};
+// إزالة module.exports واستخدام export بدلاً منه
+// export { authenticateToken, requireAdmin }; // اختياري لأن الدوال مُصدرة بالفعل

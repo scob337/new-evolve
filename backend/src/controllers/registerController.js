@@ -1,12 +1,12 @@
-const { validationResult } = require('express-validator');
-const { sendTemplateEmail } = require('../utils/emailService');
+import { validationResult } from 'express-validator';
+import { sendTemplateEmail } from '../utils/emailService.js';
 
 /**
  * معالجة تقديم نموذج التسجيل
  * @param {Object} req - كائن الطلب
  * @param {Object} res - كائن الاستجابة
  */
-exports.submitRegistration = async (req, res) => {
+export const submitRegistration = async (req, res) => {
   try {
     console.log('🔄 بدء معالجة طلب التسجيل');
     console.log('📋 البيانات المستلمة:', {
@@ -208,30 +208,6 @@ exports.submitRegistration = async (req, res) => {
       rightsText: 'جميع الحقوق محفوظة'
     };
     
-    // Send admin email
-    try {
-      await sendTemplateEmail({
-        to: process.env.ADMIN_EMAIL || 'F.alamoudi@evolvetheapp.com',
-        subject: 'تسجيل عضو جديد - Evolve Fitness',
-        context: adminContext
-      });
-      console.log('تم إرسال إيميل الإدارة بنجاح');
-    } catch (emailError) {
-      console.error('خطأ في إرسال إيميل الإدارة:', emailError);
-    }
-    
-    // Send user confirmation email
-    try {
-      await sendTemplateEmail({
-        to: email,
-        subject: 'مرحباً بك في Evolve Fitness',
-        context: userContext
-      });
-      console.log('تم إرسال إيميل التأكيد للمستخدم بنجاح');
-    } catch (emailError) {
-      console.error('خطأ في إرسال إيميل التأكيد:', emailError);
-    }
-
     let emailResults = {
       adminEmail: { success: false, error: null },
       userEmail: { success: false, error: null }

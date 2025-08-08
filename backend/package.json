@@ -1,6 +1,7 @@
 {
   "name": "evolve-backend",
   "version": "1.0.0",
+  "type": "module",
   "description": "Backend server for Evolve fitness application",
   "main": "src/server.js",
   "scripts": {

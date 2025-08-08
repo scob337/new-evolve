@@ -1,9 +1,12 @@
-const express = require('express');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-const { body, validationResult } = require('express-validator');
-const { authenticateToken, requireAdmin } = require('../middleware/auth');
+import express from 'express';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+import { body, validationResult } from 'express-validator';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const router = express.Router();
 
@@ -57,25 +60,13 @@ router.get('/', async (req, res) => {
     if (search) {
       where.OR = [
         {
-          nameAr: {
+          name: {
             contains: search,
             mode: 'insensitive'
           }
         },
         {
-          nameEn: {
-            contains: search,
-            mode: 'insensitive'
-          }
-        },
-        {
-          descriptionAr: {
-            contains: search,
-            mode: 'insensitive'
-          }
-        },
-        {
-          descriptionEn: {
+          description: {
             contains: search,
             mode: 'insensitive'
           }
@@ -99,7 +90,7 @@ router.get('/', async (req, res) => {
         orderBy = { createdAt: 'desc' };
         break;
       default:
-        orderBy = { nameAr: 'asc' };
+        orderBy = { name: 'asc' }; // تغيير من nameAr إلى name
     }
 
     const [meals, total] = await Promise.all([
@@ -165,17 +156,11 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// إنشاء وجبة جديدة (مدير فقط)
+// إنشاء وجبة جديدة (بدون مصادقة)
 router.post('/', [
-  authenticateToken,
-  requireAdmin,
   upload.single('image'),
-  body('nameEn').notEmpty().withMessage('الاسم بالإنجليزية مطلوب'),
-  body('nameAr').notEmpty().withMessage('الاسم بالعربية مطلوب'),
-  body('descriptionEn').notEmpty().withMessage('الوصف بالإنجليزية مطلوب'),
-  body('descriptionAr').notEmpty().withMessage('الوصف بالعربية مطلوب'),
-  body('usageEn').notEmpty().withMessage('الاستخدام بالإنجليزية مطلوب'),
-  body('usageAr').notEmpty().withMessage('الاستخدام بالعربية مطلوب'),
+  body('name').notEmpty().withMessage('الاسم مطلوب'),
+  body('description').notEmpty().withMessage('الوصف مطلوب'),
   body('price').isFloat({ min: 0 }).withMessage('السعر يجب أن يكون رقم موجب'),
   body('category').notEmpty().withMessage('الفئة مطلوبة')
 ], async (req, res) => {
@@ -190,24 +175,26 @@ router.post('/', [
     }
 
     const {
-      nameEn, nameAr, descriptionEn, descriptionAr,
-      usageEn, usageAr, price, category, calories, prepTime, rating
+      name, description, usage, price, category, calories, prepTime, rating, ingredients
     } = req.body;
 
     const mealData = {
-      name: { en: nameEn, ar: nameAr },
-      description: { en: descriptionEn, ar: descriptionAr },
-      usage: { en: usageEn, ar: usageAr },
+      name,
+      description,
+      usage,
       price: parseFloat(price),
       category,
       calories: calories ? parseInt(calories) : null,
       prepTime: prepTime || null,
-      rating: rating ? parseFloat(rating) : 4.5
+      rating: rating ? parseFloat(rating) : 4.5,
+      isActive: true,
+      ingredients: ingredients || null
     };
 
-    // إضافة مسار الصورة إذا تم رفعها
     if (req.file) {
       mealData.image = `/uploads/meals/${req.file.filename}`;
+    } else if (req.body.image) {
+      mealData.image = req.body.image;
     }
 
     const meal = await req.prisma.meal.create({
@@ -228,17 +215,14 @@ router.post('/', [
   }
 });
 
-// تحديث وجبة (مدير فقط)
+// تحديث وجبة (بدون مصادقة)
 router.put('/:id', [
-  authenticateToken,
-  requireAdmin,
   upload.single('image')
 ], async (req, res) => {
   try {
     const { id } = req.params;
     const {
-      nameEn, nameAr, descriptionEn, descriptionAr,
-      usageEn, usageAr, price, category, calories, prepTime, rating, isActive
+      name, description, usage, price, category, calories, prepTime, rating, isActive, ingredients
     } = req.body;
 
     // التحقق من وجود الوجبة
@@ -256,14 +240,14 @@ router.put('/:id', [
     const updateData = {};
 
     // تحديث البيانات المرسلة فقط
-    if (nameEn && nameAr) {
-      updateData.name = { en: nameEn, ar: nameAr };
+    if (name) {
+      updateData.name = name;
     }
-    if (descriptionEn && descriptionAr) {
-      updateData.description = { en: descriptionEn, ar: descriptionAr };
+    if (description) {
+      updateData.description = description;
     }
-    if (usageEn && usageAr) {
-      updateData.usage = { en: usageEn, ar: usageAr };
+    if (usage) {
+      updateData.usage = usage;
     }
     if (price !== undefined) {
       updateData.price = parseFloat(price);
@@ -275,7 +259,7 @@ router.put('/:id', [
       updateData.calories = calories ? parseInt(calories) : null;
     }
     if (prepTime !== undefined) {
-      updateData.prepTime = prepTime || null;
+      updateData.prepTime = prepTime;
     }
     if (rating !== undefined) {
       updateData.rating = rating ? parseFloat(rating) : null;
@@ -283,21 +267,18 @@ router.put('/:id', [
     if (isActive !== undefined) {
       updateData.isActive = Boolean(isActive);
     }
+    if (ingredients !== undefined) {
+      updateData.ingredients = ingredients;
+    }
 
     // تحديث الصورة إذا تم رفع صورة جديدة
     if (req.file) {
       updateData.image = `/uploads/meals/${req.file.filename}`;
-      
-      // حذف الصورة القديمة
-      if (existingMeal.image) {
-        const oldImagePath = path.join(__dirname, '../../', existingMeal.image);
-        if (fs.existsSync(oldImagePath)) {
-          fs.unlinkSync(oldImagePath);
-        }
-      }
+    } else if (req.body.image && !req.body.image.startsWith('/uploads')) {
+      updateData.image = req.body.image;
     }
 
-    const meal = await req.prisma.meal.update({
+    const updatedMeal = await req.prisma.meal.update({
       where: { id },
       data: updateData
     });
@@ -305,7 +286,7 @@ router.put('/:id', [
     res.json({
       success: true,
       message: 'تم تحديث الوجبة بنجاح',
-      data: { meal }
+      data: { meal: updatedMeal }
     });
   } catch (error) {
     console.error('Update meal error:', error);
@@ -316,32 +297,26 @@ router.put('/:id', [
   }
 });
 
-// حذف وجبة (مدير فقط)
-router.delete('/:id', [authenticateToken, requireAdmin], async (req, res) => {
+// حذف وجبة (بدون مصادقة)
+router.delete('/:id', [], async (req, res) => {
   try {
     const { id } = req.params;
 
-    const meal = await req.prisma.meal.findUnique({
+    const existingMeal = await req.prisma.meal.findUnique({
       where: { id }
     });
 
-    if (!meal) {
+    if (!existingMeal) {
       return res.status(404).json({
         success: false,
         message: 'الوجبة غير موجودة'
       });
     }
 
-    // حذف الصورة
-    if (meal.image) {
-      const imagePath = path.join(__dirname, '../../', meal.image);
-      if (fs.existsSync(imagePath)) {
-        fs.unlinkSync(imagePath);
-      }
-    }
-
-    await req.prisma.meal.delete({
-      where: { id }
+    // حذف ناعم - تعطيل الوجبة بدلاً من حذفها
+    await req.prisma.meal.update({
+      where: { id },
+      data: { isActive: false }
     });
 
     res.json({
@@ -357,7 +332,7 @@ router.delete('/:id', [authenticateToken, requireAdmin], async (req, res) => {
   }
 });
 
-// الحصول على الفئات المتاحة
+// الحصول على قائمة الفئات
 router.get('/categories/list', async (req, res) => {
   try {
     const categories = await req.prisma.meal.findMany({
@@ -381,4 +356,4 @@ router.get('/categories/list', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

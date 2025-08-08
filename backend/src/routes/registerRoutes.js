@@ -1,6 +1,6 @@
-const express = require('express');
-const { body } = require('express-validator');
-const registerController = require('../controllers/registerController');
+import express from 'express';
+import { body } from 'express-validator';
+import { submitRegistration } from '../controllers/registerController.js';
 
 const router = express.Router();
 
@@ -22,34 +22,31 @@ router.post(
     body('targetWeight').isNumeric().withMessage('الوزن المستهدف يجب أن يكون رقماً').toFloat(),
     body('targetDate').optional(),
     body('weightLossReasons').isArray().withMessage('أسباب فقدان الوزن يجب أن تكون مصفوفة'),
-    body('motivationLevel').isNumeric().withMessage('مستوى الدافعية يجب أن يكون رقماً').toInt().isInt({ min: 1, max: 10 }).withMessage('مستوى الدافعية يجب أن يكون بين 1 و 10'),
+    body('motivationLevel').optional(),
     
-    // Health & Medical validation
-    body('medicalConditions').optional().isArray(),
+    // Health Information validation
+    body('medicalConditions').optional(),
     body('medications').optional(),
-    body('hasMedications').optional().isBoolean().toBoolean(),
     body('foodAllergies').optional(),
-    body('hasFoodAllergies').optional().isBoolean().toBoolean(),
     body('doctorClearance').optional(),
     
-    // Current Habits validation
+    // Lifestyle validation
     body('mealsPerDay').optional(),
     body('eatingOutFrequency').optional(),
     body('sugaryDrinks').optional(),
     body('waterIntake').optional(),
     body('sleepHours').optional(),
     body('exerciseFrequency').optional(),
-    body('exerciseTypes').optional().isArray(),
+    body('exerciseTypes').optional(),
     
-    // Preferences & Support validation
+    // Preferences validation
     body('mealPlanPreference').optional(),
-    body('trainingInterest').optional().isArray(),
+    body('trainingInterest').optional(),
     body('dietaryRestrictions').optional(),
-    body('hasDietaryRestrictions').optional().isBoolean().toBoolean(),
     body('coachGenderPreference').optional(),
     body('supportLevel').optional(),
     
-    // Lifestyle & Readiness validation
+    // Additional Information validation
     body('stressLevel').optional(),
     body('smokingStatus').optional(),
     body('alcoholConsumption').optional(),
@@ -57,7 +54,7 @@ router.post(
     body('pastSuccesses').optional(),
     body('hasSupport').optional()
   ],
-  registerController.submitRegistration
+  submitRegistration
 );
 
-module.exports = router;
+export default router;

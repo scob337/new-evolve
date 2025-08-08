@@ -1,8 +1,8 @@
-const express = require('express');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const { body, validationResult } = require('express-validator');
-const { authenticateToken } = require('../middleware/auth');
+import express from 'express';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { body, validationResult } from 'express-validator';
+import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -45,34 +45,32 @@ router.post('/register', [
         email,
         password: hashedPassword,
         name,
-        role: 'USER'
-      },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        createdAt: true
+        role: 'user'
       }
     });
 
-    // إنشاء التوكن
+    // إنشاء JWT token
     const token = jwt.sign(
-      { userId: user.id },
+      { userId: user.id, email: user.email },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN }
+      { expiresIn: '7d' }
     );
 
     res.status(201).json({
       success: true,
       message: 'تم إنشاء الحساب بنجاح',
       data: {
-        user,
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role
+        },
         token
       }
     });
   } catch (error) {
-    console.error('Registration error:', error);
+    console.error('Register error:', error);
     res.status(500).json({
       success: false,
       message: 'حدث خطأ أثناء إنشاء الحساب'
@@ -102,27 +100,28 @@ router.post('/login', [
       where: { email }
     });
 
-    if (!user || !user.isActive) {
+    if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'بيانات الدخول غير صحيحة'
+        message: 'البريد الإلكتروني أو كلمة المرور غير صحيحة'
       });
     }
 
     // التحقق من كلمة المرور
     const isPasswordValid = await bcrypt.compare(password, user.password);
+
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
-        message: 'بيانات الدخول غير صحيحة'
+        message: 'البريد الإلكتروني أو كلمة المرور غير صحيحة'
       });
     }
 
-    // إنشاء التوكن
+    // إنشاء JWT token
     const token = jwt.sign(
-      { userId: user.id },
+      { userId: user.id, email: user.email },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN }
+      { expiresIn: '7d' }
     );
 
     res.json({
@@ -147,14 +146,30 @@ router.post('/login', [
   }
 });
 
-// الحصول على بيانات المستخدم الحالي
+// الحصول على معلومات المستخدم الحالي
 router.get('/me', authenticateToken, async (req, res) => {
   try {
+    const user = await req.prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        createdAt: true
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'المستخدم غير موجود'
+      });
+    }
+
     res.json({
       success: true,
-      data: {
-        user: req.user
-      }
+      data: { user }
     });
   } catch (error) {
     console.error('Get user error:', error);
@@ -183,15 +198,23 @@ router.put('/change-password', [
 
     const { currentPassword, newPassword } = req.body;
 
-    // جلب المستخدم مع كلمة المرور
+    // الحصول على المستخدم الحالي
     const user = await req.prisma.user.findUnique({
       where: { id: req.user.id }
     });
 
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'المستخدم غير موجود'
+      });
+    }
+
     // التحقق من كلمة المرور الحالية
     const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+
     if (!isCurrentPasswordValid) {
-      return res.status(400).json({
+      return res.status(401).json({
         success: false,
         message: 'كلمة المرور الحالية غير صحيحة'
       });
@@ -227,4 +250,4 @@ router.post('/logout', authenticateToken, (req, res) => {
   });
 });
 
-module.exports = router;
+export default router;

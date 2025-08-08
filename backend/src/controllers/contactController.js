@@ -1,12 +1,12 @@
-const { validationResult } = require('express-validator');
-const { sendTemplateEmail } = require('../utils/emailService');
+import { validationResult } from 'express-validator';
+import { sendTemplateEmail } from '../utils/emailService.js';
 
 /**
  * معالجة تقديم نموذج الاتصال
  * @param {Object} req - كائن الطلب
  * @param {Object} res - كائن الاستجابة
  */
-exports.submitContactForm = async (req, res) => {
+export const submitContactForm = async (req, res) => {
   try {
     // التحقق من صحة المدخلات
     const errors = validationResult(req);

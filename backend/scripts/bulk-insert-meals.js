@@ -1,13 +1,12 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
+// تعديل بيانات الوجبات لتتوافق مع الهيكل الجديد
 const mealsData = [
   // الحلويات
   {
-    nameAr: 'بياناكوتا بالتوت والفراولة',
-    nameEn: 'Panna Cotta with Berries and Strawberry',
-    descriptionAr: 'حلوى إيطالية كريمية بالتوت الأحمر والفراولة الطازجة',
-    descriptionEn: 'Italian creamy dessert with red berries and fresh strawberry',
+    name: 'بياناكوتا بالتوت والفراولة / Panna Cotta with Berries and Strawberry',
+    description: 'حلوى إيطالية كريمية بالتوت الأحمر والفراولة الطازجة / Italian creamy dessert with red berries and fresh strawberry',
     price: 25.00,
     calories: 208,
     protein: 6,

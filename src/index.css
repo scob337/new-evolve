@@ -2790,7 +2790,63 @@ html[dir="rtl"] .form-notification:before {
 
 /* RTL Support */
 [dir="rtl"] {
+  direction: rtl;
   text-align: right;
+}
+
+[dir="ltr"] {
+  direction: ltr;
+  text-align: left;
+}
+
+/* RTL specific styles */
+.rtl {
+  direction: rtl;
+  text-align: right;
+}
+
+.ltr {
+  direction: ltr;
+  text-align: left;
+}
+
+/* Tailwind RTL utilities */
+.rtl .space-x-reverse > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-x-reverse: 1;
+}
+
+.rtl .divide-x-reverse > :not([hidden]) ~ :not([hidden]) {
+  --tw-divide-x-reverse: 1;
+}
+
+/* Font support for Arabic */
+.rtl {
+  font-family: 'Segoe UI', 'Tahoma', 'Arial', sans-serif;
+}
+
+/* Smooth transitions for direction changes */
+* {
+  transition: all 0.3s ease;
+}
+
+/* Fix for Arabic text rendering */
+.rtl input,
+.rtl textarea,
+.rtl select {
+  text-align: right;
+}
+
+.ltr input,
+.ltr textarea,
+.ltr select {
+  text-align: left;
+}
+
+/* Responsive RTL support */
+@media (max-width: 768px) {
+  .rtl {
+    font-size: 14px;
+  }
 }
 
 [dir="rtl"] .space-x-reverse > :not([hidden]) ~ :not([hidden]) {

@@ -3,9 +3,13 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import jsPDF from 'jspdf';
 import QRCode from 'qrcode';
+import html2canvas from 'html2canvas'; // إضافة هذا السطر
+import { useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
 
 const Dashboard = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [meals, setMeals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -21,12 +25,9 @@ const Dashboard = () => {
     revenue: 45680
   });
   const [newMeal, setNewMeal] = useState({
-    nameEn: '',
-    nameAr: '',
-    descriptionEn: '',
-    descriptionAr: '',
-    usageEn: '',
-    usageAr: '',
+    name: '',
+    description: '',
+    usage: '',
     price: '',
     category: '',
     image: '',
@@ -35,17 +36,24 @@ const Dashboard = () => {
     carbs: '',
     fat: '',
     prepTime: '',
-    rating: '4.5'
+    rating: '4.5',
+    ingredients: '' // إضافة حقل المكونات
   });
+  const handleLogout = () => {
+    // مسح الكوكيز
+    Cookies.remove('hasLoggedIn');
+    // إعادة التوجيه إلى صفحة تسجيل الدخول
+    navigate('/login');
+  };
 
-   const handlePrintQR = async (meal) => {
+  const handlePrintQR = async (meal) => {
     try {
       // إنشاء URL للوجبة
       const mealUrl = `${window.location.origin}/meal/${meal.id}`;
       
       // إنشاء QR code
       const qrCodeDataUrl = await QRCode.toDataURL(mealUrl, {
-        width: 200,
+        width: 100,
         margin: 2,
         color: {
           dark: '#000000',
@@ -53,26 +61,49 @@ const Dashboard = () => {
         }
       });
       
+      // إنشاء عنصر HTML مؤقت لعرض المحتوى
+      const tempDiv = document.createElement('div');
+      tempDiv.style.position = 'absolute';
+      tempDiv.style.left = '-9999px';
+      tempDiv.style.fontFamily = 'Arial, sans-serif';
+      tempDiv.style.direction = 'rtl'; // دعم RTL للغة العربية
+      tempDiv.style.textAlign = 'right';
+      
+      // إضافة محتوى البطاقة
+      tempDiv.innerHTML = `
+        <div style="padding: 20px; width: 600px;">
+          <h1 style="font-size: 24px; text-align: center;">Evolve QR Code</h1>
+          <h2 style="font-size: 20px; text-align: right; margin-top: 20px;">${getMealName(meal)}</h2>
+          <div style="text-align: center; margin: 20px 0;">
+            <img src="${qrCodeDataUrl}" style="width: 200px; height: 200px;" />
+          </div>
+          <p style="font-size: 12px; text-align: right;">URL: ${mealUrl}</p>
+        </div>
+      `;
+      
+      document.body.appendChild(tempDiv);
+      
+      // استخدام html2canvas لتحويل العنصر إلى صورة
+      const canvas = await html2canvas(tempDiv, {
+        allowTaint: true,
+        useCORS: true,
+        scale: 2 // جودة أعلى
+      });
+      
+      // إزالة العنصر المؤقت
+      document.body.removeChild(tempDiv);
+      
       // إنشاء PDF
-      const pdf = new jsPDF();
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
       
-      // إضافة عنوان
-      pdf.setFontSize(20);
-      pdf.text('Evolve QR Code', 20, 30);
+      // إضافة الصورة إلى PDF
+      const imgData = canvas.toDataURL('image/png');
+      pdf.addImage(imgData, 'PNG', 10, 10, 190, 100);
       
-      // إضافة اسم الوجبة
-      pdf.setFontSize(16);
-      const mealName = meal.nameEn || meal.name ;
-      pdf.text(` ${meal.nameEn}`, 20, 50);
-      
-      // إضافة QR code
-      pdf.addImage(qrCodeDataUrl, 'PNG', 20, 60, 50, 50);
-      
-      // إضافة URL
-      pdf.setFontSize(10);
-      pdf.text(`URL: ${mealUrl}`, 20, 120);
-      
-
       // طباعة PDF
       pdf.autoPrint();
       window.open(pdf.output('bloburl'), '_blank');
@@ -93,9 +124,9 @@ const Dashboard = () => {
       setLoading(true);
       setError(null);
       
-      const response = await fetch('https://evolvetheapp.com/api/meals');
+      const response = await fetch('http://localhost:5001/api/meals');
       const data = await response.json();
-      
+      console.log(data)
       if (data.success) {
         setMeals(data.data.meals);
         setStats(prev => ({
@@ -129,46 +160,54 @@ const Dashboard = () => {
     try {
       const formData = new FormData();
       
-      // Add all required fields
-      formData.append('nameEn', newMeal.nameEn);
-      formData.append('nameAr', newMeal.nameAr);
-      formData.append('descriptionEn', newMeal.descriptionEn);
-      formData.append('descriptionAr', newMeal.descriptionAr);
-      formData.append('usageEn', newMeal.usageEn);
-      formData.append('usageAr', newMeal.usageAr);
+      // إضافة جميع الحقول
+      formData.append('name', newMeal.name);
+      formData.append('description', newMeal.description);
+      formData.append('usage', newMeal.usage);
       formData.append('price', parseFloat(newMeal.price));
       formData.append('category', newMeal.category);
       
-      // Add optional fields
       if (newMeal.calories) formData.append('calories', parseInt(newMeal.calories));
+      if (newMeal.protein) formData.append('protein', parseInt(newMeal.protein));
+      if (newMeal.carbs) formData.append('carbs', parseInt(newMeal.carbs));
+      if (newMeal.fat) formData.append('fat', parseInt(newMeal.fat));
       if (newMeal.prepTime) formData.append('prepTime', newMeal.prepTime);
       if (newMeal.rating) formData.append('rating', parseFloat(newMeal.rating));
       
-      // Note: For image upload, you'll need to handle file input
-      // For now, we'll skip image upload in dashboard
+      // إضافة المكونات
+      if (newMeal.ingredients) {
+        // تحويل المكونات إلى تنسيق JSON
+        const ingredientsArray = newMeal.ingredients.split(/[,._\-\s]+/).map(item => item.trim()).filter(item => item);
+        const ingredientsJson = JSON.stringify({
+          ar: ingredientsArray,
+          en: ingredientsArray
+        });
+        formData.append('ingredients', ingredientsJson);
+      }
       
-      const response = await fetch('https://evolvetheapp.com/api/meals', {
+      // إضافة الصورة المحلية إذا تم اختيارها
+      if (newMeal.imageFile) {
+        formData.append('image', newMeal.imageFile);
+      } else if (newMeal.image) {
+        formData.append('image', newMeal.image);
+      }
+      
+      const response = await fetch('http://localhost:5001/api/meals', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}` // You'll need admin authentication
-        },
         body: formData
       });
       
       const data = await response.json();
       
       if (data.success) {
-        // Reload meals from API
+        // إعادة تحميل الوجبات من API
         await loadMealsFromAPI();
         
-        // Reset form
+        // إعادة تعيين نموذج الوجبة الجديدة
         setNewMeal({
-          nameEn: '',
-          nameAr: '',
-          descriptionEn: '',
-          descriptionAr: '',
-          usageEn: '',
-          usageAr: '',
+          name: '',
+          description: '',
+          usage: '',
           price: '',
           category: '',
           image: '',
@@ -177,8 +216,10 @@ const Dashboard = () => {
           carbs: '',
           fat: '',
           prepTime: '',
-          rating: '4.5'
+          rating: '4.5',
+          ingredients: ''
         });
+        
         setShowAddMeal(false);
         
         alert(t('meal_added_successfully') || 'تم إضافة الوجبة بنجاح');
@@ -194,15 +235,16 @@ const Dashboard = () => {
   const handleEditMeal = (meal) => {
     setEditingMeal({
       id: meal.id,
-      nameEn: meal.nameEn || (meal.name && meal.name.en) || '',
-      nameAr: meal.nameAr || (meal.name && meal.name.ar) || '',
-      descriptionEn: meal.descriptionEn || (meal.description && meal.description.en) || '',
-      descriptionAr: meal.descriptionAr || (meal.description && meal.description.ar) || '',
-      usageEn: meal.usageEn || (meal.usage && meal.usage.en) || '',
-      usageAr: meal.usageAr || (meal.usage && meal.usage.ar) || '',
+      name: meal.name || '',
+      description: meal.description || '',
+      usage: meal.usage || '',
       price: meal.price || '',
       category: meal.category || '',
+      image: meal.image || '',
       calories: meal.calories || '',
+      protein: meal.protein || '',
+      carbs: meal.carbs || '',
+      fat: meal.fat || '',
       prepTime: meal.prepTime || '',
       rating: meal.rating || '4.5'
     });
@@ -215,32 +257,47 @@ const Dashboard = () => {
     try {
       const formData = new FormData();
       
-      // Add all fields
-      formData.append('nameEn', editingMeal.nameEn);
-      formData.append('nameAr', editingMeal.nameAr);
-      formData.append('descriptionEn', editingMeal.descriptionEn);
-      formData.append('descriptionAr', editingMeal.descriptionAr);
-      formData.append('usageEn', editingMeal.usageEn);
-      formData.append('usageAr', editingMeal.usageAr);
+      // إضافة جميع الحقول
+      formData.append('name', editingMeal.name);
+      formData.append('description', editingMeal.description);
+      formData.append('usage', editingMeal.usage);
       formData.append('price', parseFloat(editingMeal.price));
       formData.append('category', editingMeal.category);
       
       if (editingMeal.calories) formData.append('calories', parseInt(editingMeal.calories));
+      if (editingMeal.protein) formData.append('protein', parseInt(editingMeal.protein));
+      if (editingMeal.carbs) formData.append('carbs', parseInt(editingMeal.carbs));
+      if (editingMeal.fat) formData.append('fat', parseInt(editingMeal.fat));
       if (editingMeal.prepTime) formData.append('prepTime', editingMeal.prepTime);
       if (editingMeal.rating) formData.append('rating', parseFloat(editingMeal.rating));
       
-      const response = await fetch(`https://evolvetheapp.com/api/meals/${editingMeal.id}`, {
+      // إضافة المكونات
+      if (editingMeal.ingredients) {
+        // تحويل المكونات إلى تنسيق JSON
+        const ingredientsArray = editingMeal.ingredients.split(/[,._\-\s]+/).map(item => item.trim()).filter(item => item);
+        const ingredientsJson = JSON.stringify({
+          ar: ingredientsArray,
+          en: ingredientsArray
+        });
+        formData.append('ingredients', ingredientsJson);
+      }
+      
+      // إضافة الصورة المحلية إذا تم اختيارها
+      if (editingMeal.imageFile) {
+        formData.append('image', editingMeal.imageFile);
+      } else if (editingMeal.image) {
+        formData.append('image', editingMeal.image);
+      }
+      
+      const response = await fetch(`http://localhost:5001/api/meals/${editingMeal.id}`, {
         method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-        },
         body: formData
       });
       
       const data = await response.json();
       
       if (data.success) {
-        // Reload meals from API
+        // إعادة تحميل الوجبات من API
         await loadMealsFromAPI();
         
         setShowEditMeal(false);
@@ -259,11 +316,8 @@ const Dashboard = () => {
   const handleDeleteMeal = async (mealId) => {
     if (window.confirm(t('confirm_delete_meal') || 'هل أنت متأكد من حذف هذه الوجبة؟')) {
       try {
-        const response = await fetch(`https://evolvetheapp.com/api/meals/${mealId}`, {
+        const response = await fetch(`http://localhost:5001/api/meals/${mealId}`, {
           method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-          }
         });
         
         const data = await response.json();
@@ -323,54 +377,6 @@ const Dashboard = () => {
     { value: 'desserts', label: t('desserts') }
   ];
 
-  const statCards = [
-    {
-      title: t('total_meals'),
-      value: stats.totalMeals,
-      icon: (
-        <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2h-2.22l.123.489.804.804A1 1 0 0113 18H7a1 1 0 01-.707-1.707l.804-.804L7.22 15H5a2 2 0 01-2-2V5zm5.771 7H5V5h10v7H8.771z" clipRule="evenodd" />
-        </svg>
-      ),
-      color: 'from-blue-500 to-blue-600',
-      change: '+12%'
-    },
-    {
-      title: t('total_users'),
-      value: stats.totalUsers,
-      icon: (
-        <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
-          <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
-        </svg>
-      ),
-      color: 'from-green-500 to-green-600',
-      change: '+8%'
-    },
-    {
-      title: t('total_orders'),
-      value: stats.totalOrders,
-      icon: (
-        <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
-          <path fillRule="evenodd" d="M10 2L3 7v11a1 1 0 001 1h12a1 1 0 001-1V7l-7-5zM6 9.5A1.5 1.5 0 017.5 8h5A1.5 1.5 0 0114 9.5v1a1.5 1.5 0 01-1.5 1.5h-5A1.5 1.5 0 016 10.5v-1z" clipRule="evenodd" />
-        </svg>
-      ),
-      color: 'from-orange-500 to-orange-600',
-      change: '+15%'
-    },
-    {
-      title: t('revenue'),
-      value: `$${stats.revenue.toLocaleString()}`,
-      icon: (
-        <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
-          <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
-          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
-        </svg>
-      ),
-      color: 'from-purple-500 to-purple-600',
-      change: '+22%'
-    }
-  ];
-
   return (
     <div className="pt-20 min-h-screen bg-gray-50">
       {/* Header */}
@@ -386,17 +392,29 @@ const Dashboard = () => {
               </p>
             </div>
             <div className="flex space-x-4">
+              &nbsp;
+
               <Link
                 to="/menu"
                 className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors duration-300"
               >
                 {t('view_menu')}
               </Link>
+              &nbsp;
+
+              &nbsp;
               <button
                 onClick={() => setShowAddMeal(true)}
                 className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-2 rounded-lg hover:from-orange-600 hover:to-red-600 transition-all duration-300"
               >
                 {t('add_new_meal')}
+              </button>
+              &nbsp;
+              <button
+                onClick={handleLogout}
+                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors duration-300"
+              >
+                {t('logout') || 'تسجيل الخروج'}
               </button>
             </div>
           </div>
@@ -404,35 +422,6 @@ const Dashboard = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {statCards.map((stat, index) => (
-            <div
-              key={index}
-              className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300"
-              data-aos="fade-up"
-              data-aos-delay={index * 100}
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600 mb-1">
-                    {stat.title}
-                  </p>
-                  <p className="text-3xl font-bold text-gray-900">
-                    {stat.value}
-                  </p>
-                  <p className="text-sm text-green-600 mt-1">
-                    {stat.change} {t('from_last_month')}
-                  </p>
-                </div>
-                <div className={`w-16 h-16 bg-gradient-to-r ${stat.color} rounded-full flex items-center justify-center text-white`}>
-                  {stat.icon}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
         {/* Meals Management */}
         <div className="bg-white rounded-lg shadow-lg">
           <div className="p-6 border-b border-gray-200">
@@ -497,8 +486,8 @@ const Dashboard = () => {
                         <div className="flex-shrink-0 h-12 w-12">
                           <img
                             className="h-12 w-12 rounded-lg object-cover"
-                            src={meal.image || '/images/default-meal.jpg'}
-                            alt={meal.nameEn}
+                            src={getImageUrl(meal.image)}
+                            alt={getMealName(meal)}
                             onError={(e) => {
                               e.target.src = '/images/default-meal.jpg';
                             }}
@@ -506,12 +495,8 @@ const Dashboard = () => {
                         </div>
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-900">
-                            {meal.name}
+                            {getMealName(meal)}
                           </div>
-                            <div className="text-sm text-gray-500">
-                              {meal.nameEn}
-                            </div>
-                          
                         </div>
                       </div>
                     </td>
@@ -526,28 +511,30 @@ const Dashboard = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {meal.calories} cal
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex flex-wrap gap-2 rtl:space-x-reverse">
+                        <button
+                          onClick={() => handleEditMeal(meal)}
+                          className="px-3 py-1 bg-blue-50 border border-blue-300 rounded-md text-blue-600 hover:bg-blue-100 transition-colors duration-200"
+                        >
+                          {t('edit')}
+                        </button>
 
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <button
-                        onClick={() => handleEditMeal(meal)}
-                        className="text-blue-600 hover:text-blue-900 mr-4"
-                      >
-                        {t('edit')}
-                      </button>
-
-                      <button
-                        onClick={() => handleDeleteMeal(meal.id)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        {t('delete')}
-                      </button>
-                                            <button
-                        onClick={() => handlePrintQR(meal)}
-                        className="text-green-600 hover:text-green-900 ml-4"
-                        title="طباعة QR Code"
-                      >
-                       QR
-                      </button>
+                        <button
+                          onClick={() => handleDeleteMeal(meal.id)}
+                          className="px-3 py-1 bg-red-50 border border-red-300 rounded-md text-red-600 hover:bg-red-100 transition-colors duration-200"
+                        >
+                          {t('delete')}
+                        </button>
+                        
+                        <button
+                          onClick={() => handlePrintQR(meal)}
+                          className="px-3 py-1 bg-green-50 border border-green-300 rounded-md text-green-600 hover:bg-green-100 transition-colors duration-200"
+                          title="طباعة QR Code"
+                        >
+                          QR
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -576,61 +563,43 @@ const Dashboard = () => {
                 </button>
               </div>
 
-              <form onSubmit={handleAddMeal} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t('meal_name_en')}
-                    </label>
-                    <input
-                      type="text"
-                      value={newMeal.name}
-                      onChange={(e) => setNewMeal({...newMeal, name: e.target.value})}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t('meal_name_ar')}
-                    </label>
-                    <input
-                      type="text"
-                      value={newMeal.name_ar}
-                      onChange={(e) => setNewMeal({...newMeal, name_ar: e.target.value})}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                      required
-                    />
-                  </div>
+              <form onSubmit={handleAddMeal} className="space-y-6" encType="multipart/form-data">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('meal_name')}
+                  </label>
+                  <input
+                    type="text"
+                    value={newMeal.name}
+                    onChange={(e) => setNewMeal({...newMeal, name: e.target.value})}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    required
+                  />
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t('description_en')}
-                    </label>
-                    <textarea
-                      value={newMeal.description}
-                      onChange={(e) => setNewMeal({...newMeal, description: e.target.value})}
-                      rows={3}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t('description_ar')}
-                    </label>
-                    <textarea
-                      value={newMeal.description_ar}
-                      onChange={(e) => setNewMeal({...newMeal, description_ar: e.target.value})}
-                      rows={3}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                      required
-                    />
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('description')}
+                  </label>
+                  <textarea
+                    value={newMeal.description}
+                    onChange={(e) => setNewMeal({...newMeal, description: e.target.value})}
+                    rows={3}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('usage')}
+                  </label>
+                  <textarea
+                    value={newMeal.usage}
+                    onChange={(e) => setNewMeal({...newMeal, usage: e.target.value})}
+                    rows={3}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  />
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -724,46 +693,38 @@ const Dashboard = () => {
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t('ingredients')}
-                    </label>
-                    <textarea
-                      value={newMeal.ingredients}
-                      onChange={(e) => setNewMeal({...newMeal, ingredients: e.target.value})}
-                      rows={3}
-                      placeholder={t('ingredients_placeholder')}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t('allergens')}
-                    </label>
-                    <textarea
-                      value={newMeal.allergens}
-                      onChange={(e) => setNewMeal({...newMeal, allergens: e.target.value})}
-                      rows={3}
-                      placeholder={t('allergens_placeholder')}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('ingredients')}
+                  </label>
+                  <textarea
+                    value={newMeal.ingredients}
+                    onChange={(e) => setNewMeal({...newMeal, ingredients: e.target.value})}
+                    rows={3}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    placeholder={t('enter_ingredients_separated') || 'أدخل المكونات مفصولة بفواصل'}
+                  />
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('image_url')}
+                    {t('image_upload')}
                   </label>
-                  <input
-                    type="url"
-                    value={newMeal.image}
-                    onChange={(e) => setNewMeal({...newMeal, image: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    placeholder="https://example.com/image.jpg"
-                  />
+                  <div className="flex items-center space-x-4">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setNewMeal({...newMeal, imageFile: e.target.files[0]})}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    />
+                    {newMeal.image && (
+                      <div className="text-sm text-gray-500">
+                        {t('or_use_url') || 'أو استخدم الرابط'}
+                      </div>
+                    )}
+                  </div>
                 </div>
+                
                 
                 <div className="flex justify-end space-x-4">
                   <button
@@ -808,59 +769,43 @@ const Dashboard = () => {
                 </button>
               </div>
 
-              <form onSubmit={handleUpdateMeal} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t('meal_name_en')}
-                    </label>
-                    <input
-                      type="text"
-                      value={editingMeal.name}
-                      onChange={(e) => setEditingMeal({...editingMeal, name: e.target.value})}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t('meal_name_ar')}
-                    </label>
-                    <input
-                      type="text"
-                      value={editingMeal.name_ar || ''}
-                      onChange={(e) => setEditingMeal({...editingMeal, name_ar: e.target.value})}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    />
-                  </div>
+              <form onSubmit={handleUpdateMeal} className="space-y-6" encType="multipart/form-data">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('meal_name')}
+                  </label>
+                  <input
+                    type="text"
+                    value={editingMeal.name}
+                    onChange={(e) => setEditingMeal({...editingMeal, name: e.target.value})}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    required
+                  />
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t('description_en')}
-                    </label>
-                    <textarea
-                      value={editingMeal.description}
-                      onChange={(e) => setEditingMeal({...editingMeal, description: e.target.value})}
-                      rows={3}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t('description_ar')}
-                    </label>
-                    <textarea
-                      value={editingMeal.description_ar || ''}
-                      onChange={(e) => setEditingMeal({...editingMeal, description_ar: e.target.value})}
-                      rows={3}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('description')}
+                  </label>
+                  <textarea
+                    value={editingMeal.description}
+                    onChange={(e) => setEditingMeal({...editingMeal, description: e.target.value})}
+                    rows={3}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('usage')}
+                  </label>
+                  <textarea
+                    value={editingMeal.usage}
+                    onChange={(e) => setEditingMeal({...editingMeal, usage: e.target.value})}
+                    rows={3}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  />
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -954,31 +899,35 @@ const Dashboard = () => {
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t('ingredients')}
-                    </label>
-                    <textarea
-                      value={editingMeal.ingredients || ''}
-                      onChange={(e) => setEditingMeal({...editingMeal, ingredients: e.target.value})}
-                      rows={3}
-                      placeholder={t('ingredients_placeholder')}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('ingredients')}
+                  </label>
+                  <textarea
+                    value={editingMeal.ingredients}
+                    onChange={(e) => setEditingMeal({...editingMeal, ingredients: e.target.value})}
+                    rows={3}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    placeholder={t('enter_ingredients_separated') || 'أدخل المكونات مفصولة بفواصل'}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('image_upload')}
+                  </label>
+                  <div className="flex items-center space-x-4">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setEditingMeal({...editingMeal, imageFile: e.target.files[0]})}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                     />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {t('allergens')}
-                    </label>
-                    <textarea
-                      value={editingMeal.allergens || ''}
-                      onChange={(e) => setEditingMeal({...editingMeal, allergens: e.target.value})}
-                      rows={3}
-                      placeholder={t('allergens_placeholder')}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    />
+                    {editingMeal.image && (
+                      <div className="text-sm text-gray-500">
+                        {t('current_image') || 'الصورة الحالية'}: {editingMeal.image.substring(editingMeal.image.lastIndexOf('/') + 1)}
+                      </div>
+                    )}
                   </div>
                 </div>
                 
@@ -988,7 +937,7 @@ const Dashboard = () => {
                   </label>
                   <input
                     type="url"
-                    value={editingMeal.image || ''}
+                    value={editingMeal.image}
                     onChange={(e) => setEditingMeal({...editingMeal, image: e.target.value})}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                     placeholder="https://example.com/image.jpg"
@@ -1023,3 +972,13 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
+// بعد تعريف المتغيرات وقبل useEffect
+
+// دالة مساعدة لتحويل مسار الصورة إلى URL كامل
+const getImageUrl = (imagePath) => {
+  if (!imagePath) return '/images/default-meal.jpg';
+  if (imagePath.startsWith('http')) return imagePath;
+  return `http://localhost:5001${imagePath}`;
+};
+
